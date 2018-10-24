@@ -1,4 +1,4 @@
-A simple Discord bot to announce when users join/exit channels
+A simple Discord bot to announce when users join/exit non-AFK channels
 
 ### Configuration Commands
 
@@ -12,7 +12,7 @@ The following are the commands provided for bot configuration:
   * `exit` - Announces only when users exits a channel.
   * `both` - Announces when a user joins and exits a channel.
 * __ignoreEmpty__ - Bot will ignore users entering an empty channel or leaving a channel empty (default is to ignore).
-* __includeEmpty__ - Bot will include all channels (empty or not) when announcing a user.
+* __includeEmpty__ - Bot will include all non-AFK channels (empty or not) when announcing a user.
 * __settings__ - Displays server's current configuration setings.
 * __resestconfig__ - Resets the server's configuration to the default.
 * __help__ - Displays the help information.
