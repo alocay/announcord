@@ -1,0 +1,26 @@
+{
+  "name": "announcord",
+  "version": "1.0.0",
+  "description": "Announcer Discord Bot",
+  "main": "index.js",
+  "scripts": {
+    "build": "babel src -d lib --copy-files",
+    "start": "babel src -d lib --copy-files && node lib/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Armando Locay",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "^2.339.0",
+    "discord.js": "^11.4.2",
+    "better-sqlite-pool": "^0.1.2",
+    "enmap": "^4.3.2",
+    "ffmpeg-binaries": "^4.0.0",
+    "node-opus": "^0.3.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-es2015": "^6.24.1"
+  }
+}
