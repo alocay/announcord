@@ -1,0 +1,10 @@
+{
+    "defaultSettings": {
+        "prefix": "ann!",
+        "announce": "both",
+        "ignoreEmpty": "true"
+    },
+    
+    "token": "",
+    "hardCodedPrefix": "ann$"
+}

@@ -1,7 +1,5 @@
 # Ignored files #
 #################
-config.json
-src/config.json
 src/assets/
 data/
 
