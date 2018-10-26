@@ -82,17 +82,19 @@ bot.on('guildDelete', guild => {
     bot.settings.ensure(guild.id);
 });
 
-bot.on('voiceStateUpdate', (oldMember, newMember) => {
-    if (newMember.user.bot) return;
+bot.on('voiceStateUpdate', (oldState, newState) => { 
+    if (newState.member.user.bot) return;
     
-    let newUserChannel = newMember.voiceChannel;
-    let oldUserChannel = oldMember.voiceChannel;
-    const username = newMember.nickname ? newMember.nickname : newMember.user.username;
-    const announcer = announcers.get(newMember.guild.id);
+    const voiceStateGuild = bot.guilds.get(newState.guild.id);
+    
+    let newChannel = newState ? newState.channel : null;
+    let oldChannel = oldState ? oldState.channel : null;
+    const username = newState.member.nickname ? newState.member.nickname : newState.member.user.username;
+    const announcer = announcers.get(newState.guild.id);
     
     if (!announcer) return;
     
-    announcer.handleVoiceUpdate(username, oldUserChannel, newUserChannel);
+    announcer.handleVoiceUpdate(username, newState.id, oldChannel, newChannel, voiceStateGuild.voiceConnection);
 });
 
 bot.on('message', message => {
@@ -226,7 +228,7 @@ function displayHelp(message, helpArgs) {
 function createEmbedHelpMessage(guild) {
     const guildConfig = bot.settings.ensure(guild.id, defaultSettings);
     
-    const embed = new Discord.RichEmbed()
+    const embed = new Discord.MessageEmbed()
         .setTitle('Announcord Help Information')
         .setDescription(`**Note:** All commands can be reduced to at least 2 letters. The command prefix ${hardCodedPrefix} will always be available if necessary.`)
         .setFooter(`The bot icon is made by Freepik at http://www.freepik.com`)
@@ -242,7 +244,7 @@ function createEmbedHelpMessage(guild) {
 function createEmbedConfigMessage(guild) {
     const guildConfig = bot.settings.ensure(guild.id, defaultSettings);
     
-    const embed = new Discord.RichEmbed()
+    const embed = new Discord.MessageEmbed()
         .setTitle(`Configuration for ${guild.name}`)
         .setTimestamp();
     
