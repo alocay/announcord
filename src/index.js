@@ -5,6 +5,7 @@ import Enmap from 'enmap';
 import Announcer from './announcer.js';
 
 const { defaultSettings, token, hardCodedPrefix } = require('./config.json');
+const logger = require('./logger.js');
 
 const bot = new Discord.Client();
 const announcers = new Discord.Collection();
@@ -64,7 +65,7 @@ const commands = new Discord.Collection([
 ]);
 
 bot.on('ready', () => {
-    console.log('Ready');
+    logger.info('Ready');
     
     bot.guilds.forEach((guild) => {
         const settings = bot.settings.ensure(guild.id, defaultSettings);
@@ -221,7 +222,7 @@ function displayHelp(message, helpArgs) {
         message.author.send(helpEmbed);
         message.reply('A DM has been sent with the help info');
     } catch(e) {
-        console.error('Error display help', e);
+        logger.error('Error display help', e);
     }
 }
 
@@ -255,6 +256,6 @@ function createEmbedConfigMessage(guild) {
     return embed;
 }
 
-process.on('unhandledRejection', error => console.error(`Uncaught Promise Rejection:\n${error}`));
+// process.on('unhandledRejection', err => logger.error(`Uncaught Promise Rejection:\n${err}`));
 
 bot.login(token);

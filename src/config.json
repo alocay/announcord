@@ -6,5 +6,6 @@
     },
     
     "token": "",
-    "hardCodedPrefix": "ann$"
+    "hardCodedPrefix": "ann$",
+    "logLevel": "error"
 }

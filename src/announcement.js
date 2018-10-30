@@ -13,7 +13,7 @@ class Announcement {
     {
     }
     
-    static CreateAnnouncement(username, channel, entered) {
+    static async CreateAnnouncement(username, channel, entered) {
         //console.log('create announcement: ' + username);
         return new Promise((resolve, reject) => {
             if (!username || !channel) {

@@ -3,6 +3,9 @@
 import Queue from './queue.js';
 import Announcement from './announcement.js';
 
+const winston = require('winston');
+const logger = require('./logger.js');
+
 class Announcer {
     constructor(guild, style, ignoreEmpty) 
     {
@@ -40,109 +43,72 @@ class Announcer {
             newChannel.memberCount = this.getChannelMemberCount(newChannel, userid);
         }
         
-        console.log('********* new update ************');
+        logger.debug('********* new update ************');
         
         if (oldChannel && newChannel) {
             if(oldChannel.id !== newChannel.id) {            
                 const currentBotChannel = voiceConnection ? voiceConnection.channel : null;
                 
-                if (currentBotChannel && currentBotChannel.id === newChannel.id) {
-                    console.log('join first');
-                    this.queueJoinFirst(username, newChannel, oldChannel);
-                } else if (currentBotChannel && currentBotChannel.id === oldChannel.id) {
-                    console.log('exit first');
-                    this.queueExitFirst(username, newChannel, oldChannel);
+                if (currentBotChannel && currentBotChannel.id === oldChannel.id) {
+                    logger.debug('exit first');
+                    this.queueExitFirstAsync(username, newChannel, oldChannel);
                 } else {
-                    console.log('any');
-                    this.queueAnyOrder(username, newChannel, oldChannel);
+                    logger.debug('any or enter first');
+                    this.queueJoinFirstAsync(username, newChannel, oldChannel);
                 }
                 
             }
         } else if (oldChannel) {
-            if (this.shouldAnnounceTheExit(oldChannel.memberCount)) {
-                this.queueAnnouncement(username, oldChannel, false);
-            }
+            this.queueExitAsync(username, oldChannel, true);
         } else if (newChannel) {
-            if (this.shouldAnnounceTheJoin(newChannel.memberCount)) {
-                this.queueAnnouncement(username, newChannel, true);
-            }
+            this.queueJoinAsync(username, newChannel, true);
         }
     }
     
-    queueJoinFirst(username, newChannel, oldChannel) {
-        const onJoinAnnounced = function() {
-            console.log('on join announced');
-            if (this.shouldAnnounceTheExit(oldChannel.memberCount)) {
-                console.log('exit announce');
-                Announcement.CreateAnnouncement(username, oldChannel, false).then(this.queueAnnouncementAndStart.bind(this))
-            } else {
-                console.log('skipping exit announce');
-            }
-        };
+    async queueJoinFirstAsync(username, newChannel, oldChannel) {
+        await this.queueJoinAsync(username, newChannel, false);        
+        await this.queueExitAsync(username, oldChannel, false);
         
-        if (this.shouldAnnounceTheJoin(newChannel.memberCount)) {
-            console.log('announce join');
-            Announcement.CreateAnnouncement(username, newChannel, true).then(
-                this.queueAnnouncementAsync.bind(this)
-            ).then(onJoinAnnounced.bind(this));
-            
-            return;
+        this.startAnnouncing();
+    }
+    
+    async queueExitFirstAsync(username, newChannel, oldChannel) {
+        await this.queueExitAsync(username, oldChannel, false);
+        await this.queueJoinAsync(username, newChannel, false);
+        
+        this.startAnnouncing();
+    }
+    
+    async queueJoinAsync(username, channel, startAnnouncing) {
+        if (this.shouldAnnounceTheJoin(channel.memberCount)) {
+            logger.debug('announce join');
+            await this.createAndQueueAnnouncement(username, channel, true);
         } else {
-            console.log('skipping init join announce');
+            logger.debug('skipping init join announce');
         }
         
-        if (this.shouldAnnounceTheExit(oldChannel.memberCount)) {
-            console.log('announce exit only');
-            this.queueAnnouncement(username, oldChannel, false);
-        } else {
-            console.log('skipping end exit');
+        if (startAnnouncing) {
+            this.startAnnouncing();
         }
     }
     
-    queueExitFirst(username, newChannel, oldChannel) {
-        const onExitAnnounced = function() {
-            console.log('on exit announced');
-            if (this.shouldAnnounceTheJoin(newChannel.memberCount)) {
-                console.log('join announce');
-                Announcement.CreateAnnouncement(username, newChannel, true).then(this.queueAnnouncementAndStart.bind(this))
-            } else {
-                console.log('skipping join announce');
-            }
-        };
-        
-        if (this.shouldAnnounceTheExit(oldChannel.memberCount)) {
-            console.log('announce exit');
-            Announcement.CreateAnnouncement(username, oldChannel, false).then(
-                this.queueAnnouncementAsync.bind(this)
-            ).then(onExitAnnounced.bind(this));
-            
-            return;
+    async queueExitAsync(username, channel, startAnnouncing) {
+        if (this.shouldAnnounceTheExit(channel.memberCount)) {
+            logger.debug('exit announce');
+            await this.createAndQueueAnnouncement(username, channel, false);
         } else {
-            console.log('skipping init exit announce');
+            logger.debug('skipping exit announce');
         }
         
-        if (this.shouldAnnounceTheJoin(newChannel.memberCount)) {
-            console.log('announce join only');
-            this.queueAnnouncement(username, newChannel, true);
-        } else {
-            console.log('skipping end join');
+        if (startAnnouncing) {
+            this.startAnnouncing();
         }
     }
     
-    queueAnyOrder(username, newChannel, oldChannel) {
-        console.log('queue any order');
-        if (this.shouldAnnounceTheJoin(newChannel.memberCount)) {
-            this.queueAnnouncement(username, newChannel, true);
-        }
-        
-        if (this.shouldAnnounceTheExit(oldChannel.memberCount)) {
-            this.queueAnnouncement(username, oldChannel, false);
-        }
-    }
-    
-    queueAnnouncement(username, channel, entered) {        
-        console.log('announcing and starting promise');
-        Announcement.CreateAnnouncement(username, channel, entered).then(this.queueAnnouncementAndStart.bind(this), err => { console.error(err); });
+    async createAndQueueAnnouncement(username, channel, entered) {        
+        logger.debug('announcing and starting promise');
+        const ann = await Announcement.CreateAnnouncement(username, channel, entered);
+        this.queueAnnouncement(ann);
     }
     
     startAnnouncing() {
@@ -153,11 +119,15 @@ class Announcer {
     
     annouceNextUser() {
         this.announcing = true;
+        
+        logger.debug('annoucement queue: ' + this.announceQueue.size());
         const announcement = this.announceQueue.dequeue();
         
         if (announcement) {
+            logger.debug('got next announcement... annoucing...');
             this.announce(announcement);
         } else {
+            logger.debug('no more annoucements');
             this.announcing = false;
         }
     }
@@ -166,38 +136,24 @@ class Announcer {
         if (announcement && announcement.channel && announcement.stream) {
             announcement.channel.join().then(this.onChannelJoined.bind(this, announcement));
         } else {
-            console.log('something was null in the announcement - skipping', announcement);
+            logger.debug('something was null in the announcement - skipping', announcement);
             this.annouceNextUser();
         }
     }
     
     onChannelJoined(announcement, connection) {
         const dispatcher = connection.play(announcement.stream);                
-                dispatcher.on('end', () => { 
-                    //console.log('ended!');
-                    //announcement.stream.destroy(new Error('error destroying'));
-                    //announcement.channel.leave();
-                    this.annouceNextUser();
-                });
-    }
-    
-    queueAnnouncementAsync(ann) {
-        const that = this;
-        return new Promise((resolve, reject) => {
-            try {
-                console.log('announce queued async');
-                that.announceQueue.enqueue(ann);
-                resolve();
-            } catch (err) {
-                reject(err);
-            }
+        dispatcher.on('end', () => { 
+            //logger.debug('ended!');
+            //announcement.stream.destroy(new Error('error destroying'));
+            //announcement.channel.leave();
+            this.annouceNextUser();
         });
     }
     
-    queueAnnouncementAndStart(ann) {
-        console.log('queueing and then starting');
+    queueAnnouncement(ann) {
+        logger.debug('announcement queued');
         this.announceQueue.enqueue(ann);
-        this.startAnnouncing();
     }
     
     getChannelMemberCount(channel, idToIgnore) {
@@ -219,12 +175,12 @@ class Announcer {
     }
     
     shouldAnnounceTheJoin(memberCount) {
-        console.log('join: ' + memberCount);
+        logger.debug('join: ' + memberCount);
         return this.shouldAnnounceJoins() && (!this.ignoreEmpty || (this.ignoreEmpty && memberCount > 0));
     }
     
     shouldAnnounceTheExit(memberCount) {
-        console.log('exit: ' + memberCount);
+        logger.debug('exit: ' + memberCount);
         return this.shouldAnnounceExits() && (!this.ignoreEmpty || (this.ignoreEmpty && memberCount > 0));
     }
 }
