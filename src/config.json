@@ -1,11 +1,16 @@
 {
     "defaultSettings": {
         "prefix": "ann!",
-        "announce": "both",
-        "ignoreEmpty": "true"
+        "style": "both",
+        "ignoreEmpty": "true",
+        "voice": "Matthew",
+        "language": "US English",
+        "languageCode": "en-US",
+        "enterAlert": "%name has entered the channel",
+        "exitAlert": "%name has left the channel"
     },
     
     "token": "",
     "hardCodedPrefix": "ann$",
-    "logLevel": "error"
+    "logLevel": "info"
 }

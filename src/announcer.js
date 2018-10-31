@@ -1,19 +1,32 @@
 "use strict";
 
 import Queue from './queue.js';
-import Announcement from './announcement.js';
+import AnnouncementManager from './announcement.js';
 
 const winston = require('winston');
 const logger = require('./logger.js');
 
 class Announcer {
-    constructor(guild, style, ignoreEmpty) 
+    constructor(guild, style, ignoreEmpty, voiceId, langCode, enterAlert, exitAlert) 
     {
+        this.announcementManager = new AnnouncementManager(voiceId, langCode, enterAlert, exitAlert);
         this.announceQueue = new Queue();
         this.announcing = false;
         this.guild = guild;
         this.style = style;
         this.ignoreEmpty = ignoreEmpty;
+    }
+    
+    updateVoiceId(voiceId, languageCode) {
+        this.announcementManager.updateVoiceId(voiceId, languageCode);
+    }
+    
+    updateEnterAlert(format) {
+        this.announcementManager.updateEnterAlert(format);
+    }
+    
+    updateExitAlert(format) {
+        this.announcementManager.updateExitAlert(format);
     }
     
     updateAnnouncementStyle(style) {
@@ -107,7 +120,7 @@ class Announcer {
     
     async createAndQueueAnnouncement(username, channel, entered) {        
         logger.debug('announcing and starting promise');
-        const ann = await Announcement.CreateAnnouncement(username, channel, entered);
+        const ann = await this.announcementManager.createAnnouncement(username, channel, entered);
         this.queueAnnouncement(ann);
     }
     

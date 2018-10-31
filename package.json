@@ -17,6 +17,7 @@
     "enmap": "^4.3.2",
     "ffmpeg-binaries": "^4.0.0",
     "node-opus": "^0.3.0",
+    "sprintf-js": "^1.1.1",
     "winston": "^3.1.0"
   },
   "devDependencies": {

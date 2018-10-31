@@ -3,23 +3,41 @@
 import * as AWS from 'aws-sdk';
 import * as Stream from 'stream';
 
+const sprintf = require('sprintf-js').sprintf;
+
 const Polly = new AWS.Polly({
     signatureVersion: 'v4',
     region: 'us-east-1'
 });
 
-class Announcement {
-    constructor() 
+class AnnouncementManager {
+    constructor(voiceId, langCode, enterAlert, exitAlert) 
     {
+        this.voiceId = voiceId;
+        this.languageCode = langCode;
+        this.enterAlert = enterAlert.replace('%name', '%1$s');
+        this.exitAlert = exitAlert.replace('%name', '%1$s');
     }
     
-    static async CreateAnnouncement(username, channel, entered) {
-        //console.log('create announcement: ' + username);
+    updateVoiceId(voiceId, langCode) {
+        this.voiceId = voiceId;
+        this.languageCode = langCode;
+    }
+    
+    updateEnterAlert(format) {
+        this.enterAlert = format.replace('%name', '%1$s');
+    }
+    
+    updateExitAlert(format) {
+        this.exitAlert = format.replace('%name', '%1$s');
+    }
+    
+    async createAnnouncement(username, channel, entered) {
         return new Promise((resolve, reject) => {
             if (!username || !channel) {
                 reject(new Error('username and channel required'));
             } else {
-                Announcement.getSpeechStream(username, channel, entered).then(buffer => {
+                this.getSpeechStream(username, channel, entered).then(buffer => {
                     const announcement = {
                         username: username,
                         channel: channel,
@@ -35,29 +53,30 @@ class Announcement {
         });
     }
     
-    static createPollyParams(username, entered) {
+    createPollyParams(username, entered) {
+        const text = sprintf((entered ? this.enterAlert : this.exitAlert), username);
         let params = {
-            'LanguageCode': 'en-US',
-            'Text': `${username} has ${(entered ? 'entered' : 'left')} the channel`,
+            'LanguageCode': this.languageCode,
+            'Text': text,
             'OutputFormat': 'mp3',
-            'VoiceId': 'Matthew'
+            'VoiceId': this.voiceId
         };
         
         return params;
     }
     
-    static getSpeechStream(username, channel, entered) {
+    getSpeechStream(username, channel, entered) {
         return new Promise((resolve, reject) => {
             if (!username || !channel) {
                 reject(new Error('username and channel required'));
             }
             
-            const params = Announcement.createPollyParams(username, entered);
-            Polly.synthesizeSpeech(params, Announcement.onSpeechSynthesized.bind(this, resolve, reject));
+            const params = this.createPollyParams(username, entered);
+            Polly.synthesizeSpeech(params, this.onSpeechSynthesized.bind(this, resolve, reject));
         });
     }
     
-    static onSpeechSynthesized(resolve, reject, err, data) {
+    onSpeechSynthesized(resolve, reject, err, data) {
         if (err) {
             console.log(err.code);
             reject(err);
@@ -65,11 +84,10 @@ class Announcement {
             if (data.AudioStream instanceof Buffer) {
                 let stream = new Stream.PassThrough();
                 stream.end(data.AudioStream);
-                //console.log('stream created');
                 resolve(stream);
             }
         }
     }
 }
 
-export default Announcement;
+export default AnnouncementManager;
