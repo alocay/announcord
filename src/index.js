@@ -1,5 +1,6 @@
 'use strict';
 
+import express from 'express';
 import * as AWS from 'aws-sdk';
 import Discord from 'discord.js';
 import Enmap from 'enmap';
