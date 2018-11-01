@@ -1,10 +1,10 @@
 'use strict';
 
-import express from 'express';
 import * as AWS from 'aws-sdk';
 import Discord from 'discord.js';
 import Enmap from 'enmap';
 import Announcer from './announcer.js';
+
 
 const Polly = new AWS.Polly({
     signatureVersion: 'v4',
@@ -486,8 +486,12 @@ function createEmbedConfigMessage(guild) {
     return embed;
 }
 
+function init() {
+    loadAvailableVoicesAndLangCodes();
+
+    bot.login(token);
+}
+
 process.on('unhandledRejection', err => logger.error(`Uncaught Promise Rejection:\n${err}`));
 
-loadAvailableVoicesAndLangCodes();
-
-bot.login(token);
+init();
