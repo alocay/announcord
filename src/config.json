@@ -12,5 +12,5 @@
     
     "token": "NTAzNzIyMTc3MTgzNjEyOTI5.Dr0sVg.ibu8c_eK9mOaDfgG3S1Vtb7DImo",
     "hardCodedPrefix": "ann$",
-    "logLevel": "info"
+    "logLevel": "debug"
 }
