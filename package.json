@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "babel src -d lib --copy-files",
+    "postinstall": "npm run build",
     "dev": "babel src -d lib --copy-files && node lib/index.js",
     "start": "node lib/index.js"
   },
