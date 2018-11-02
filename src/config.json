@@ -10,7 +10,7 @@
         "exitAlert": "%name has left the channel"
     },
     
-    "token": "NTAzNzIyMTc3MTgzNjEyOTI5.Dq6nyQ.8Gfm_XgDiFTKOUgAR6NaDWzuZ5w",
+    "token": "",
     "hardCodedPrefix": "ann$",
     "logLevel": "info"
 }
