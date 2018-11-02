@@ -190,8 +190,8 @@ class Announcer {
     shouldAnnounceTheJoin(memberCount) {
         logger.debug('join: ' + memberCount);
         logger.debug(`ignore empty? ${this.ignoreEmpty}`);
-        logger.debug(`should announce joins: ${this.shouldAnnounceJoins()}`);
-        logger.debug(`checking ignore: ${(!this.ignoreEmpty || (this.ignoreEmpty && memberCount > 0)}`);
+        logger.debug(`should announce joins: ${this.shouldAnnounceJoins()} - ${this.style}`);
+        logger.debug(`checking ignore: ${(!this.ignoreEmpty || (this.ignoreEmpty && memberCount > 0))}`);
         return this.shouldAnnounceJoins() && (!this.ignoreEmpty || (this.ignoreEmpty && memberCount > 0));
     }
     
@@ -199,7 +199,7 @@ class Announcer {
         logger.debug('exit: ' + memberCount);
         logger.debug(`ignore empty? ${this.ignoreEmpty}`);
         logger.debug(`should announce exits: ${this.shouldAnnounceExits()}`);
-        logger.debug(`checking ignore: ${(!this.ignoreEmpty || (this.ignoreEmpty && memberCount > 0)}`);
+        logger.debug(`checking ignore: ${(!this.ignoreEmpty || (this.ignoreEmpty && memberCount > 0))}`);
         return this.shouldAnnounceExits() && (!this.ignoreEmpty || (this.ignoreEmpty && memberCount > 0));
     }
 }

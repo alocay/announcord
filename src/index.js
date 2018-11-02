@@ -104,11 +104,12 @@ bot.on('ready', () => {
     
     bot.guilds.forEach((guild) => {
         const settings = bot.settings.ensure(guild.id, defaultSettings);
+        
         announcers.set(
             guild.id, 
             new Announcer(
                 guild, 
-                settings.announce, 
+                settings.style, 
                 settings.ignoreEmpty, 
                 settings.voice, 
                 settings.languageCode, 
