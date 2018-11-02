@@ -347,4 +347,69 @@
 2018-11-02T18:49:36.648387+00:00 app[web.1]: 02-11-2018 18:49:36 [[34mdebug[39m]: skipping exit announce
 2018-11-02T18:49:36.648613+00:00 app[web.1]: 02-11-2018 18:49:36 [[34mdebug[39m]: annoucement queue: 0
 2018-11-02T18:49:36.648922+00:00 app[web.1]: 02-11-2018 18:49:36 [[34mdebug[39m]: no more annoucements
-Terminate batch job (Y/N)? 
+2018-11-02T18:53:42.000000+00:00 app[api]: Build started by user alocay@gmail.com
+2018-11-02T18:53:56.000000+00:00 app[api]: Build failed -- check your build logs
+2018-11-02T18:54:34.094612+00:00 app[web.1]: 02-11-2018 18:54:34 [[34mdebug[39m]: ********* new update ************
+2018-11-02T18:54:34.094999+00:00 app[web.1]: 02-11-2018 18:54:34 [[34mdebug[39m]: any or enter first
+2018-11-02T18:54:34.095933+00:00 app[web.1]: 02-11-2018 18:54:34 [[34mdebug[39m]: join: 0
+2018-11-02T18:54:34.096368+00:00 app[web.1]: 02-11-2018 18:54:34 [[34mdebug[39m]: skipping init join announce
+2018-11-02T18:54:34.099075+00:00 app[web.1]: 02-11-2018 18:54:34 [[34mdebug[39m]: exit: 0
+2018-11-02T18:54:34.102309+00:00 app[web.1]: 02-11-2018 18:54:34 [[34mdebug[39m]: skipping exit announce
+2018-11-02T18:54:34.102558+00:00 app[web.1]: 02-11-2018 18:54:34 [[34mdebug[39m]: annoucement queue: 0
+2018-11-02T18:54:34.103661+00:00 app[web.1]: 02-11-2018 18:54:34 [[34mdebug[39m]: no more annoucements
+2018-11-02T18:55:10.530291+00:00 app[web.1]: 02-11-2018 18:55:10 [[34mdebug[39m]: ********* new update ************
+2018-11-02T18:55:10.530534+00:00 app[web.1]: 02-11-2018 18:55:10 [[34mdebug[39m]: any or enter first
+2018-11-02T18:55:10.530721+00:00 app[web.1]: 02-11-2018 18:55:10 [[34mdebug[39m]: join: 0
+2018-11-02T18:55:10.530921+00:00 app[web.1]: 02-11-2018 18:55:10 [[34mdebug[39m]: skipping init join announce
+2018-11-02T18:55:10.531299+00:00 app[web.1]: 02-11-2018 18:55:10 [[34mdebug[39m]: exit: 0
+2018-11-02T18:55:10.531516+00:00 app[web.1]: 02-11-2018 18:55:10 [[34mdebug[39m]: skipping exit announce
+2018-11-02T18:55:10.531757+00:00 app[web.1]: 02-11-2018 18:55:10 [[34mdebug[39m]: annoucement queue: 0
+2018-11-02T18:55:10.531967+00:00 app[web.1]: 02-11-2018 18:55:10 [[34mdebug[39m]: no more annoucements
+2018-11-02T18:57:24.693052+00:00 heroku[web.1]: State changed from up to down
+2018-11-02T18:57:24.587342+00:00 app[api]: Scaled to web@0:Free worker@0:Free by user alocay@gmail.com
+2018-11-02T18:57:25.804477+00:00 heroku[web.1]: Stopping all processes with SIGTERM
+2018-11-02T18:57:25.921879+00:00 heroku[web.1]: Process exited with status 143
+2018-11-02T19:00:39.357233+00:00 app[api]: Scaled to web@0:Free worker@1:Free by user alocay@gmail.com
+2018-11-02T19:00:45.964770+00:00 heroku[worker.1]: Starting process with command `npm start`
+2018-11-02T19:00:46.596331+00:00 heroku[worker.1]: State changed from starting to up
+2018-11-02T19:00:48.615920+00:00 app[worker.1]: 
+2018-11-02T19:00:48.615946+00:00 app[worker.1]: > announcord@1.0.0 start /app
+2018-11-02T19:00:48.615947+00:00 app[worker.1]: > node lib/index.js
+2018-11-02T19:00:48.615949+00:00 app[worker.1]: 
+2018-11-02T19:00:49.501753+00:00 app[worker.1]: 02-11-2018 19:00:49 [[32minfo[39m]: Express server listening on port 59239
+2018-11-02T19:00:49.573356+00:00 app[worker.1]: 02-11-2018 19:00:49 [[34mdebug[39m]: Number of voices: 54
+2018-11-02T19:00:49.573576+00:00 app[worker.1]: 02-11-2018 19:00:49 [[34mdebug[39m]: Voices and codes loaded
+2018-11-02T19:00:49.890741+00:00 app[worker.1]: 02-11-2018 19:00:49 [[32minfo[39m]: Ready
+2018-11-02T19:01:01.000000+00:00 app[api]: Build started by user alocay@gmail.com
+2018-11-02T19:01:34.333041+00:00 heroku[worker.1]: Restarting
+2018-11-02T19:01:34.334844+00:00 heroku[worker.1]: State changed from up to starting
+2018-11-02T19:01:35.228045+00:00 heroku[worker.1]: Stopping all processes with SIGTERM
+2018-11-02T19:01:34.047207+00:00 app[api]: Release v12 created by user alocay@gmail.com
+2018-11-02T19:01:35.327626+00:00 heroku[worker.1]: Process exited with status 143
+2018-11-02T19:01:34.047207+00:00 app[api]: Deploy c8ac6d86 by user alocay@gmail.com
+2018-11-02T19:01:41.111869+00:00 heroku[worker.1]: Starting process with command `npm start`
+2018-11-02T19:01:41.886606+00:00 heroku[worker.1]: State changed from starting to up
+2018-11-02T19:01:42.000000+00:00 app[api]: Build succeeded
+2018-11-02T19:01:45.644483+00:00 app[worker.1]: 
+2018-11-02T19:01:45.644501+00:00 app[worker.1]: > announcord@1.0.0 start /app
+2018-11-02T19:01:45.644503+00:00 app[worker.1]: > node lib/index.js
+2018-11-02T19:01:45.644504+00:00 app[worker.1]: 
+2018-11-02T19:01:47.157879+00:00 app[worker.1]: 02-11-2018 19:01:47 [[32minfo[39m]: Express server listening on port 56139
+2018-11-02T19:01:47.353892+00:00 app[worker.1]: 02-11-2018 19:01:47 [[34mdebug[39m]: Number of voices: 54
+2018-11-02T19:01:47.354283+00:00 app[worker.1]: 02-11-2018 19:01:47 [[34mdebug[39m]: Voices and codes loaded
+2018-11-02T19:01:47.562318+00:00 app[worker.1]: 02-11-2018 19:01:47 [[32minfo[39m]: Ready
+2018-11-02T19:01:50.176011+00:00 app[worker.1]: 02-11-2018 19:01:50 [[34mdebug[39m]: ********* new update ************
+2018-11-02T19:01:50.176522+00:00 app[worker.1]: 02-11-2018 19:01:50 [[34mdebug[39m]: any or enter first
+2018-11-02T19:01:50.177217+00:00 app[worker.1]: 02-11-2018 19:01:50 [[34mdebug[39m]: join: 0
+2018-11-02T19:01:50.177434+00:00 app[worker.1]: 02-11-2018 19:01:50 [[34mdebug[39m]: ignore empty? true
+2018-11-02T19:01:50.177719+00:00 app[worker.1]: 02-11-2018 19:01:50 [[34mdebug[39m]: should announce joins: true - both
+2018-11-02T19:01:50.177921+00:00 app[worker.1]: 02-11-2018 19:01:50 [[34mdebug[39m]: checking ignore: false
+2018-11-02T19:01:50.178171+00:00 app[worker.1]: 02-11-2018 19:01:50 [[34mdebug[39m]: skipping init join announce
+2018-11-02T19:01:50.179057+00:00 app[worker.1]: 02-11-2018 19:01:50 [[34mdebug[39m]: exit: 0
+2018-11-02T19:01:50.179263+00:00 app[worker.1]: 02-11-2018 19:01:50 [[34mdebug[39m]: ignore empty? true
+2018-11-02T19:01:50.179795+00:00 app[worker.1]: 02-11-2018 19:01:50 [[34mdebug[39m]: should announce exits: true
+2018-11-02T19:01:50.179997+00:00 app[worker.1]: 02-11-2018 19:01:50 [[34mdebug[39m]: checking ignore: false
+2018-11-02T19:01:50.180417+00:00 app[worker.1]: 02-11-2018 19:01:50 [[34mdebug[39m]: skipping exit announce
+2018-11-02T19:01:50.181053+00:00 app[worker.1]: 02-11-2018 19:01:50 [[34mdebug[39m]: annoucement queue: 0
+2018-11-02T19:01:50.181518+00:00 app[worker.1]: 02-11-2018 19:01:50 [[34mdebug[39m]: no more annoucements
+Terminate batch job (Y/N)? Terminate batch job (Y/N)? 

@@ -6,7 +6,7 @@ import Discord from 'discord.js';
 import Enmap from 'enmap';
 import Announcer from './announcer.js';
 
-const app = express();
+//const app = express();
 
 const Polly = new AWS.Polly({
     signatureVersion: 'v4',
@@ -493,8 +493,8 @@ function init() {
     loadAvailableVoicesAndLangCodes();
 
     bot.login(token);
-    const port = process.env.PORT || 9090;
-    app.listen(port, () => logger.info(`Express server listening on port ${port}`));
+    //const port = process.env.PORT || 9090;
+    //app.listen(port, () => logger.info(`Express server listening on port ${port}`));
 }
 
 process.on('unhandledRejection', err => logger.error(`Uncaught Promise Rejection:\n${err}`));
