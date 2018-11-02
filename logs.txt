@@ -253,4 +253,98 @@
 2018-11-02T02:13:23.307364+00:00 heroku[web.1]: Stopping process with SIGKILL
 2018-11-02T02:13:23.524348+00:00 heroku[web.1]: State changed from starting to crashed
 2018-11-02T02:13:23.495551+00:00 heroku[web.1]: Process exited with status 137
+2018-11-02T03:34:20.856792+00:00 heroku[web.1]: State changed from crashed to starting
+2018-11-02T03:34:27.367446+00:00 heroku[web.1]: Starting process with command `npm start`
+2018-11-02T03:34:30.955172+00:00 app[web.1]: 
+2018-11-02T03:34:30.955190+00:00 app[web.1]: > announcord@1.0.0 start /app
+2018-11-02T03:34:30.955192+00:00 app[web.1]: > node lib/index.js
+2018-11-02T03:34:30.955194+00:00 app[web.1]: 
+2018-11-02T03:34:32.978561+00:00 app[web.1]: 02-11-2018 03:34:32 [[32minfo[39m]: Ready
+2018-11-02T03:35:27.991219+00:00 heroku[web.1]: Error R10 (Boot timeout) -> Web process failed to bind to $PORT within 60 seconds of launch
+2018-11-02T03:35:27.991219+00:00 heroku[web.1]: Stopping process with SIGKILL
+2018-11-02T03:35:28.081125+00:00 heroku[web.1]: Process exited with status 137
+2018-11-02T03:35:28.136730+00:00 heroku[web.1]: State changed from starting to crashed
+2018-11-02T04:12:39.270464+00:00 heroku[web.1]: State changed from crashed to starting
+2018-11-02T04:12:43.834678+00:00 heroku[web.1]: Starting process with command `npm start`
+2018-11-02T04:12:46.086297+00:00 app[web.1]: 
+2018-11-02T04:12:46.086315+00:00 app[web.1]: > announcord@1.0.0 start /app
+2018-11-02T04:12:46.086316+00:00 app[web.1]: > node lib/index.js
+2018-11-02T04:12:46.086317+00:00 app[web.1]: 
+2018-11-02T04:12:47.150493+00:00 app[web.1]: 02-11-2018 04:12:47 [[32minfo[39m]: Ready
+2018-11-02T04:13:44.072646+00:00 heroku[web.1]: Error R10 (Boot timeout) -> Web process failed to bind to $PORT within 60 seconds of launch
+2018-11-02T04:13:44.072646+00:00 heroku[web.1]: Stopping process with SIGKILL
+2018-11-02T04:13:44.188088+00:00 heroku[web.1]: Process exited with status 137
+2018-11-02T04:13:44.202993+00:00 heroku[web.1]: State changed from starting to crashed
+2018-11-02T05:15:00.747014+00:00 heroku[web.1]: State changed from crashed to starting
+2018-11-02T05:15:07.776461+00:00 heroku[web.1]: Starting process with command `npm start`
+2018-11-02T05:15:12.928226+00:00 app[web.1]: 
+2018-11-02T05:15:12.928244+00:00 app[web.1]: > announcord@1.0.0 start /app
+2018-11-02T05:15:12.928246+00:00 app[web.1]: > node lib/index.js
+2018-11-02T05:15:12.928248+00:00 app[web.1]: 
+2018-11-02T05:15:14.023741+00:00 app[web.1]: 02-11-2018 05:15:14 [[32minfo[39m]: Ready
+2018-11-02T05:16:07.847241+00:00 heroku[web.1]: Error R10 (Boot timeout) -> Web process failed to bind to $PORT within 60 seconds of launch
+2018-11-02T05:16:07.847241+00:00 heroku[web.1]: Stopping process with SIGKILL
+2018-11-02T05:16:08.048036+00:00 heroku[web.1]: State changed from starting to crashed
+2018-11-02T05:16:08.030354+00:00 heroku[web.1]: Process exited with status 137
+2018-11-02T06:55:11.646750+00:00 heroku[web.1]: State changed from crashed to starting
+2018-11-02T06:55:17.688373+00:00 heroku[web.1]: Starting process with command `npm start`
+2018-11-02T06:55:20.404598+00:00 app[web.1]: 
+2018-11-02T06:55:20.404648+00:00 app[web.1]: > announcord@1.0.0 start /app
+2018-11-02T06:55:20.404650+00:00 app[web.1]: > node lib/index.js
+2018-11-02T06:55:20.404652+00:00 app[web.1]: 
+2018-11-02T06:55:22.084718+00:00 app[web.1]: 02-11-2018 06:55:22 [[32minfo[39m]: Ready
+2018-11-02T06:56:17.752477+00:00 heroku[web.1]: Error R10 (Boot timeout) -> Web process failed to bind to $PORT within 60 seconds of launch
+2018-11-02T06:56:17.752589+00:00 heroku[web.1]: Stopping process with SIGKILL
+2018-11-02T06:56:17.868857+00:00 heroku[web.1]: Process exited with status 137
+2018-11-02T06:56:17.886560+00:00 heroku[web.1]: State changed from starting to crashed
+2018-11-02T09:44:06.699622+00:00 heroku[web.1]: State changed from crashed to starting
+2018-11-02T09:44:11.382720+00:00 heroku[web.1]: Starting process with command `npm start`
+2018-11-02T09:44:14.914131+00:00 app[web.1]: 
+2018-11-02T09:44:14.914160+00:00 app[web.1]: > announcord@1.0.0 start /app
+2018-11-02T09:44:14.914161+00:00 app[web.1]: > node lib/index.js
+2018-11-02T09:44:14.914163+00:00 app[web.1]: 
+2018-11-02T09:44:15.830080+00:00 app[web.1]: 02-11-2018 09:44:15 [[32minfo[39m]: Ready
+2018-11-02T09:45:12.033348+00:00 heroku[web.1]: Error R10 (Boot timeout) -> Web process failed to bind to $PORT within 60 seconds of launch
+2018-11-02T09:45:12.033467+00:00 heroku[web.1]: Stopping process with SIGKILL
+2018-11-02T09:45:12.133175+00:00 heroku[web.1]: Process exited with status 137
+2018-11-02T09:45:12.152681+00:00 heroku[web.1]: State changed from starting to crashed
+2018-11-02T15:31:22.677411+00:00 heroku[web.1]: State changed from crashed to starting
+2018-11-02T15:31:31.942475+00:00 heroku[web.1]: Starting process with command `npm start`
+2018-11-02T15:31:35.846739+00:00 app[web.1]: 
+2018-11-02T15:31:35.846770+00:00 app[web.1]: > announcord@1.0.0 start /app
+2018-11-02T15:31:35.846772+00:00 app[web.1]: > node lib/index.js
+2018-11-02T15:31:35.846773+00:00 app[web.1]: 
+2018-11-02T15:31:38.822977+00:00 app[web.1]: 02-11-2018 15:31:38 [[32minfo[39m]: Ready
+2018-11-02T15:32:32.208319+00:00 heroku[web.1]: Error R10 (Boot timeout) -> Web process failed to bind to $PORT within 60 seconds of launch
+2018-11-02T15:32:32.208319+00:00 heroku[web.1]: Stopping process with SIGKILL
+2018-11-02T15:32:32.344648+00:00 heroku[web.1]: State changed from starting to crashed
+2018-11-02T15:32:32.328261+00:00 heroku[web.1]: Process exited with status 137
+2018-11-02T18:47:20.000000+00:00 app[api]: Build started by user alocay@gmail.com
+2018-11-02T18:47:53.176116+00:00 app[api]: Release v11 created by user alocay@gmail.com
+2018-11-02T18:47:53.176116+00:00 app[api]: Deploy 3e1acfa1 by user alocay@gmail.com
+2018-11-02T18:47:53.666807+00:00 heroku[web.1]: State changed from crashed to starting
+2018-11-02T18:48:01.000000+00:00 app[api]: Build succeeded
+2018-11-02T18:48:01.843397+00:00 heroku[web.1]: Starting process with command `npm start`
+2018-11-02T18:48:05.612470+00:00 app[web.1]: 
+2018-11-02T18:48:05.612498+00:00 app[web.1]: > announcord@1.0.0 start /app
+2018-11-02T18:48:05.612500+00:00 app[web.1]: > node lib/index.js
+2018-11-02T18:48:05.612501+00:00 app[web.1]: 
+2018-11-02T18:48:07.523672+00:00 app[web.1]: 02-11-2018 18:48:07 [[32minfo[39m]: Express server listening on port 13250
+2018-11-02T18:48:07.693477+00:00 app[web.1]: 02-11-2018 18:48:07 [[34mdebug[39m]: Number of voices: 54
+2018-11-02T18:48:07.695292+00:00 app[web.1]: 02-11-2018 18:48:07 [[34mdebug[39m]: Voices and codes loaded
+2018-11-02T18:48:07.928085+00:00 heroku[web.1]: State changed from starting to up
+2018-11-02T18:48:07.989433+00:00 app[web.1]: 02-11-2018 18:48:07 [[32minfo[39m]: Ready
+2018-11-02T18:49:08.896392+00:00 app[web.1]: 02-11-2018 18:49:08 [[34mdebug[39m]: ********* new update ************
+2018-11-02T18:49:08.901716+00:00 app[web.1]: 02-11-2018 18:49:08 [[34mdebug[39m]: join: 0
+2018-11-02T18:49:08.903916+00:00 app[web.1]: 02-11-2018 18:49:08 [[34mdebug[39m]: skipping init join announce
+2018-11-02T18:49:08.904666+00:00 app[web.1]: 02-11-2018 18:49:08 [[34mdebug[39m]: annoucement queue: 0
+2018-11-02T18:49:08.905184+00:00 app[web.1]: 02-11-2018 18:49:08 [[34mdebug[39m]: no more annoucements
+2018-11-02T18:49:36.646753+00:00 app[web.1]: 02-11-2018 18:49:36 [[34mdebug[39m]: ********* new update ************
+2018-11-02T18:49:36.646916+00:00 app[web.1]: 02-11-2018 18:49:36 [[34mdebug[39m]: any or enter first
+2018-11-02T18:49:36.647422+00:00 app[web.1]: 02-11-2018 18:49:36 [[34mdebug[39m]: join: 0
+2018-11-02T18:49:36.647600+00:00 app[web.1]: 02-11-2018 18:49:36 [[34mdebug[39m]: skipping init join announce
+2018-11-02T18:49:36.648136+00:00 app[web.1]: 02-11-2018 18:49:36 [[34mdebug[39m]: exit: 0
+2018-11-02T18:49:36.648387+00:00 app[web.1]: 02-11-2018 18:49:36 [[34mdebug[39m]: skipping exit announce
+2018-11-02T18:49:36.648613+00:00 app[web.1]: 02-11-2018 18:49:36 [[34mdebug[39m]: annoucement queue: 0
+2018-11-02T18:49:36.648922+00:00 app[web.1]: 02-11-2018 18:49:36 [[34mdebug[39m]: no more annoucements
 Terminate batch job (Y/N)? 
