@@ -77,6 +77,24 @@ const commands = new Discord.Collection([
         usage: 'exitAlert <format>',
         action: setExitAlertFormat
     }],
+    ['blacklist', {
+        name: 'blacklist',
+        description: 'Puts the given channel on a blacklist. These channels will be ignored for annoucing. Can give either a channel name or ID.',
+        usage: 'blacklist <channel>',
+        action: blacklistChannel
+    }],
+    ['whitelist', {
+        name: 'whitelist',
+        description: 'Puts the given channel on a whitelist. If the whitelist has any channel listed, only these channels will annouced in. Can give either a channel name or ID.',
+        usage: 'whitelist <channel>',
+        action: whitelistChannel
+    }],
+    ['unlist', {
+        name: 'unlist',
+        description: 'Removes the channel from either the blacklist or whitelist. Can give either a channel name or ID.',
+        usage: 'unlist <channel>',
+        action: unlistChannel
+    }],
     ['viewSettingsCmd', {
         name: 'settings',
         description: 'Displays the current configuration',
@@ -142,7 +160,9 @@ bot.on('voiceStateUpdate', (oldState, newState) => {
     
     if (!announcer) return;
     
-    announcer.handleVoiceUpdate(username, newState.id, oldChannel, newChannel, voiceStateGuild.voiceConnection);
+    const guildConfig = bot.settings.ensure(guild.id, defaultSettings);
+    
+    announcer.handleVoiceUpdate(username, newState.id, oldChannel, newChannel, voiceStateGuild.voiceConnection, guildConfig.blacklist, guildConfig.whitelist);
 });
 
 bot.on('message', message => {
@@ -377,6 +397,136 @@ function displayHelp(message, helpArgs) {
     } catch(e) {
         logger.error('Error display help', e);
     }
+}
+
+function blacklistChannel(message, args) {
+    if (args === null ||
+        args === undefined ||
+        args.length === 0 ||
+        args[0] === null) {
+        message.reply('Cannot blacklist, no channel provided.');
+        return;
+    }
+    
+    const channelToList = args[0].toLowerCase();
+    let channel = message.guild.channels.get(channelToList);
+    
+    if (!channel) {
+        channel = message.guild.channels.find(c => c.name.toLowerCase() === channelToList)
+    }
+    
+    if (!channel) {
+        message.reply(`Cannot blacklist - channel '${channelToList}' is not a valid channel name or ID.`);
+        return;
+    }
+    
+    if (isChannelBlacklisted(message.guild, channel.id)) {
+        message.reply(`Channel '${channelToList}' is already blacklisted.`);
+        return;
+    }
+    
+    removeChannelFromWhitelist(message.guild, channel.id);
+ 
+    addChannelToBlacklist(message.guild, channel.id);
+    
+    message.reply(`Channel '${channelToList}' has been blacklisted.`);
+}
+
+function whitelistChannel(message, args) {
+    if (args === null ||
+        args === undefined ||
+        args.length === 0 ||
+        args[0] === null) {
+        message.reply('Cannot whitelist, no channel provided.');
+        return;
+    }
+    
+    const channelToList = args[0].toLowerCase();
+    let channel = message.guild.channels.get(channelToList);
+    
+    if (!channel) {
+        channel = message.guild.channels.find(c => c.name.toLowerCase() === channelToList)
+    }
+    
+    if (!channel) {
+        message.reply(`Cannot whitelist - channel '${channelToList}' is not a valid channel name or ID.`);
+        return;
+    }
+    
+    if (isChannelWhitelisted(message.guild, channel.id)) {
+        message.reply(`Channel '${channelToList}' is already blacklisted.`);
+        return;
+    }
+    
+    removeChannelFromBlacklist(message.guild, channel.id);
+ 
+    addChannelToWhitelist(message.guild, channel.id);
+    
+    message.reply(`Channel '${channelToList}' has been whitelisted.`);
+}
+
+function unlistChannel(message, args) {
+    if (args === null ||
+        args === undefined ||
+        args.length === 0 ||
+        args[0] === null) {
+        message.reply('Cannot blacklist, no channel provided.');
+        return;
+    }
+    
+    const style = args[0].toLowerCase();
+    
+    console.log(message);
+}
+
+function isChannelBlacklisted(guild, channelId) {
+    const guildConfig = bot.settings.ensure(guild.id, defaultSettings);    
+    return guildConfig.blacklist.findIndex(id => id === channelId) > -1;
+}
+
+function isChannelWhitelisted(guild, channelId) {
+    const guildConfig = bot.settings.ensure(guild.id, defaultSettings);    
+    return guildConfig.whitelist.findIndex(id => id === channelId) > -1;
+}
+
+function addChannelToBlacklist(guild, channelId) {
+    const guildConfig = bot.settings.ensure(guild.id, defaultSettings);
+    let blacklist = guildConfig.blacklist;
+    blacklist.push(channelId);
+    
+    bot.settings.setProp(guild.id, 'blacklist', blacklist);
+}
+
+function addChannelToWhitelist(guild, channelId) {
+    const guildConfig = bot.settings.ensure(guild.id, defaultSettings);
+    let whitelist = guildConfig.whitelist;
+    whitelist.push(channelId);
+    
+    bot.settings.setProp(guild.id, 'whitelist', whitelist);
+}
+
+function removeChannelFromWhitelist(guild, channelId) {
+    const guildConfig = bot.settings.ensure(guild.id, defaultSettings);
+    let whitelist = guildConfig.whitelist;
+    
+    const channelIndex = whitelist.findIndex(id => id === channelId);
+    if (channelIndex > -1) {
+        whitelist.splice(channelIndex, 1);
+    }
+    
+    bot.settings.setProp(guild.id, 'whitelist', whitelist);
+}
+
+function removeChannelFromBlacklist(guild, channelId) {
+    const guildConfig = bot.settings.ensure(guild.id, defaultSettings);
+    let blacklist = guildConfig.blacklist;
+    
+    const channelIndex = blacklist.findIndex(id => id === channelId);
+    if (channelIndex > -1) {
+        blacklist.splice(channelIndex, 1);
+    }
+    
+    bot.settings.setProp(guild.id, 'blacklist', blacklist);
 }
 
 function loadAvailableVoicesAndLangCodes() {

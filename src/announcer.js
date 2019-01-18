@@ -7,7 +7,7 @@ const winston = require('winston');
 const logger = require('./logger.js');
 
 class Announcer {
-    constructor(guild, style, ignoreEmpty, voiceId, langCode, enterAlert, exitAlert) 
+    constructor(guild, style, ignoreEmpty, voiceId, langCode, enterAlert, exitAlert, blacklist, whitelist) 
     {
         this.announcementManager = new AnnouncementManager(voiceId, langCode, enterAlert, exitAlert);
         this.announceQueue = new Queue();
@@ -15,6 +15,8 @@ class Announcer {
         this.guild = guild;
         this.style = style;
         this.ignoreEmpty = ignoreEmpty;
+        this.blacklist = blacklist;
+        this.whitelist = whitelist;
     }
     
     updateVoiceId(voiceId, languageCode) {
@@ -39,6 +41,14 @@ class Announcer {
         if(isEnabled === null || isEnabled === undefined) return;
         
         this.ignoreEmpty = isEnabled;
+    }
+    
+    updateBlacklist(blacklist) {
+        this.blacklist = blacklist;
+    }
+    
+    updateWhitelist(whitelist) {
+        this.whitelist = whitelist;
     }
     
     handleVoiceUpdate(username, userid, oldChannel, newChannel, voiceConnection) {
@@ -94,8 +104,12 @@ class Announcer {
     
     async queueJoinAsync(username, channel, startAnnouncing) {
         if (this.shouldAnnounceTheJoin(channel.memberCount)) {
-            logger.debug('announce join');
-            await this.createAndQueueAnnouncement(username, channel, true);
+            if (this.isChannelWhitelisted(channel.id) || !(this.anyChannelWhitelisted() || this.isChannelBlacklisted(channel.id))) { 
+                logger.debug('announce join');
+                await this.createAndQueueAnnouncement(username, channel, true);
+            } else {
+                logger.debug('Channel is blacklisted or not on whitelist - ignoring join');
+            }
         } else {
             logger.debug('skipping init join announce');
         }
@@ -107,8 +121,12 @@ class Announcer {
     
     async queueExitAsync(username, channel, startAnnouncing) {
         if (this.shouldAnnounceTheExit(channel.memberCount)) {
-            logger.debug('exit announce');
-            await this.createAndQueueAnnouncement(username, channel, false);
+            if (this.isChannelWhitelisted(channel.id) || !(this.anyChannelWhitelisted() || this.isChannelBlacklisted(channel.id))) { 
+                logger.debug('exit announce');
+                await this.createAndQueueAnnouncement(username, channel, false);
+            } else {
+                logger.debug('Channel is blacklisted or not on whitelist - ignoring exit');
+            }
         } else {
             logger.debug('skipping exit announce');
         }
@@ -185,6 +203,18 @@ class Announcer {
     
     shouldAnnounceExits() {
         return this.style === 'both' || this.style === 'exit';
+    }
+    
+    anyChannelWhitelisted() {
+        return this.whitelist.length > 0;
+    }
+    
+    isChannelWhitelisted(channelId) {
+        return this.whitelist.find(id => id === channelId);
+    }
+    
+    isChannelBlacklisted(channelId) {
+        return this.blacklist.find(id => id === channelId);
     }
     
     shouldAnnounceTheJoin(memberCount) {
