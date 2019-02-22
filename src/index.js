@@ -4,6 +4,7 @@ import express from 'express';
 import * as AWS from 'aws-sdk';
 import Discord from 'discord.js';
 import Enmap from 'enmap';
+import semver from 'semver';
 import Announcer from './announcer.js';
 
 //const app = express();
@@ -16,6 +17,7 @@ const Polly = new AWS.Polly({
 const { defaultSettings, token, hardCodedPrefix } = require('./config.json');
 const logger = require('./logger.js');
 
+const currentVersion = defaultSettings.version;
 const bot = new Discord.Client();
 const announcers = new Discord.Collection();
 const voices = new Discord.Collection();
@@ -122,6 +124,7 @@ bot.on('ready', () => {
     
     bot.guilds.forEach((guild) => {
         const settings = bot.settings.ensure(guild.id, defaultSettings);
+        checkAndUpdateConfig(guild.id, settings);
         
         announcers.set(
             guild.id, 
@@ -132,7 +135,9 @@ bot.on('ready', () => {
                 settings.voice, 
                 settings.languageCode, 
                 settings.enterAlert, 
-                settings.exitAlert
+                settings.exitAlert,
+                settings.blacklist,
+                settings.whitelist
             )
         );
     });
@@ -160,9 +165,7 @@ bot.on('voiceStateUpdate', (oldState, newState) => {
     
     if (!announcer) return;
     
-    const guildConfig = bot.settings.ensure(guild.id, defaultSettings);
-    
-    announcer.handleVoiceUpdate(username, newState.id, oldChannel, newChannel, voiceStateGuild.voiceConnection, guildConfig.blacklist, guildConfig.whitelist);
+    announcer.handleVoiceUpdate(username, newState.id, oldChannel, newChannel, voiceStateGuild.voiceConnection);
 });
 
 bot.on('message', message => {
@@ -198,6 +201,18 @@ bot.on('message', message => {
         return;
     }
 });
+
+function checkAndUpdateConfig(guildId, config) {    
+    // update config if version isn't there or it's older than the current version
+    if (!config.version || semver.gt(currentVersion, config.version)) {
+        logger.debug(`Config out of date (${config.version}) - updating to ${currentVersion}`);
+        const updatedConfig = Object.assign(defaultSettings, config);
+        logger.debug(`Config update - ${updatedConfig.version}`);
+        bot.settings.set(guildId, updatedConfig);
+    } else {
+        logger.debug('Config up to date');
+    }
+}
 
 function setPrefixCharacter(message, prefixArg) {
     if (prefixArg === null || 
@@ -408,12 +423,8 @@ function blacklistChannel(message, args) {
         return;
     }
     
-    const channelToList = args[0].toLowerCase();
-    let channel = message.guild.channels.get(channelToList);
-    
-    if (!channel) {
-        channel = message.guild.channels.find(c => c.name.toLowerCase() === channelToList)
-    }
+    const channelToList = args.join(' ').trim().toLowerCase();
+    const channel = findChannel(message.guild, channelToList);
     
     if (!channel) {
         message.reply(`Cannot blacklist - channel '${channelToList}' is not a valid channel name or ID.`);
@@ -421,15 +432,16 @@ function blacklistChannel(message, args) {
     }
     
     if (isChannelBlacklisted(message.guild, channel.id)) {
-        message.reply(`Channel '${channelToList}' is already blacklisted.`);
+        message.reply(`Channel '${channel.name}' is already blacklisted.`);
         return;
     }
     
     removeChannelFromWhitelist(message.guild, channel.id);
  
     addChannelToBlacklist(message.guild, channel.id);
+    updateWhiteAndBlacklist(message.guild.id);
     
-    message.reply(`Channel '${channelToList}' has been blacklisted.`);
+    message.reply(`Channel '${channel.name}' has been blacklisted.`);
 }
 
 function whitelistChannel(message, args) {
@@ -441,12 +453,8 @@ function whitelistChannel(message, args) {
         return;
     }
     
-    const channelToList = args[0].toLowerCase();
-    let channel = message.guild.channels.get(channelToList);
-    
-    if (!channel) {
-        channel = message.guild.channels.find(c => c.name.toLowerCase() === channelToList)
-    }
+    const channelToList = args.join(' ').trim().toLowerCase();
+    const channel = findChannel(message.guild, channelToList);
     
     if (!channel) {
         message.reply(`Cannot whitelist - channel '${channelToList}' is not a valid channel name or ID.`);
@@ -454,15 +462,16 @@ function whitelistChannel(message, args) {
     }
     
     if (isChannelWhitelisted(message.guild, channel.id)) {
-        message.reply(`Channel '${channelToList}' is already blacklisted.`);
+        message.reply(`Channel '${channel.name}' is already whitelisted.`);
         return;
     }
     
     removeChannelFromBlacklist(message.guild, channel.id);
  
     addChannelToWhitelist(message.guild, channel.id);
+    updateWhiteAndBlacklist(message.guild.id);
     
-    message.reply(`Channel '${channelToList}' has been whitelisted.`);
+    message.reply(`Channel '${channel.name}' has been whitelisted.`);
 }
 
 function unlistChannel(message, args) {
@@ -470,13 +479,51 @@ function unlistChannel(message, args) {
         args === undefined ||
         args.length === 0 ||
         args[0] === null) {
-        message.reply('Cannot blacklist, no channel provided.');
+        message.reply('Cannot unlist, no channel provided.');
         return;
     }
     
-    const style = args[0].toLowerCase();
+    const guild = message.guild;
+    const channelToUnlist = args.join(' ').trim().toLowerCase();
+    const channel = findChannel(guild, channelToUnlist);
     
-    console.log(message);
+    if (!channel) {
+        message.reply(`Cannot unlist - channel '${channelToUnlist}' is not a valid channel name or ID.`);
+        return;
+    }
+    
+    const channelId = channel.id;    
+    if (isChannelWhitelisted(guild, channelId)) {
+        removeChannelFromWhitelist(guild, channelId);
+    } else if (isChannelBlacklisted(guild, channelId)) {
+        removeChannelFromBlacklist(guild, channelId);
+    } else {
+        message.reply(`Channel '${channel.name}' is not listed.`);
+        return;
+    }
+    
+    updateWhiteAndBlacklist(guild.id);
+    message.reply(`Channel '${channel.name}' has been unlisted.`);
+}
+
+function updateWhiteAndBlacklist(guildId) {
+    const guildConfig = bot.settings.ensure(guildId, defaultSettings);
+    const announcer = announcers.get(guildId);
+    
+    if (announcer) {
+        announcer.updateWhitelist(guildConfig.whitelist);
+        announcer.updateBlacklist(guildConfig.blacklist);
+    }
+}
+
+function findChannel(guild, channelIdOrName) {
+    let channel = guild.channels.get(channelIdOrName);
+    
+    if (!channel || channel.type.toLowerCase() !== 'voice') {
+        channel = guild.channels.find(c => c.name.toLowerCase().startsWith(channelIdOrName) && c.type.toLowerCase() === 'voice');
+    }
+    
+    return channel;
 }
 
 function isChannelBlacklisted(guild, channelId) {
@@ -633,16 +680,54 @@ function createEmbedConfigMessage(guild) {
         .setTimestamp();
     
     Object.keys(guildConfig).map(prop => {
-        embed.addField(prop, guildConfig[prop]);
+        let value = guildConfig[prop];
+        
+        if (value == null | value == undefined) {
+            value = 'N/A';
+        }
+        
+        if (Array.isArray(value)) {
+            value = getArrayValues(value, getChannelName.bind(this, guild));
+        }            
+        
+        embed.addField(prop, value);
     });
     
     return embed;
+}
+
+function getChannelName(guild, channelId) {
+    let channel = guild.channels.get(channelId);
+    
+    if (!channel) {
+        return channelId; 
+    }
+    
+    return channel.name;
+}
+
+function getArrayValues(array, displayFunc) {    
+    if (!array.length) {
+        return "None";
+    }
+    
+    let values = "";
+    for (let i = 0; i < array.length; i++) {
+        const displayValue = displayFunc ? displayFunc(array[i]) : array[i];
+        values += displayValue + ", ";
+    }
+    
+    return values.substr(0, values.length - 2);
 }
 
 function init() {
     loadAvailableVoicesAndLangCodes();
 
     bot.login(token);
+    
+    /*bot.settings.defer.then(() => {
+        bot.login(token);
+    });*/
     //const port = process.env.PORT || 9090;
     //app.listen(port, () => logger.info(`Express server listening on port ${port}`));
 }

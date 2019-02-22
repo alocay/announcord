@@ -9,6 +9,7 @@ const logger = require('./logger.js');
 class Announcer {
     constructor(guild, style, ignoreEmpty, voiceId, langCode, enterAlert, exitAlert, blacklist, whitelist) 
     {
+        logger.debug(`blacklist: ${blacklist} | whitelist: ${whitelist}`);
         this.announcementManager = new AnnouncementManager(voiceId, langCode, enterAlert, exitAlert);
         this.announceQueue = new Queue();
         this.announcing = false;
@@ -206,15 +207,20 @@ class Announcer {
     }
     
     anyChannelWhitelisted() {
+        logger.debug(`is any channel whitelisted: ${this.whitelist.length > 0}`)
         return this.whitelist.length > 0;
     }
     
     isChannelWhitelisted(channelId) {
-        return this.whitelist.find(id => id === channelId);
+        const isWhitelisted = this.whitelist.find(id => id === channelId) !== undefined;
+        logger.debug(`is channel ${channelId} whitelisted: ${isWhitelisted}`);
+        return isWhitelisted;
     }
     
     isChannelBlacklisted(channelId) {
-        return this.blacklist.find(id => id === channelId);
+        const isBlacklisted = this.blacklist.find(id => id === channelId) !== undefined;
+        logger.debug(`is channel ${channelId} blacklisted: ${isBlacklisted}`);
+        return isBlacklisted;
     }
     
     shouldAnnounceTheJoin(memberCount) {
