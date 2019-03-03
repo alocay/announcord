@@ -6,6 +6,9 @@ The following are the commands provided for bot configuration:
 
 **Note:** All commands can be trimmed down to a minimum of two characters. For commands with similar spelling, you will have to be more specific.
 
+* By default, the bot is set to ignore announcing if a user enters an empty channel.
+* If no channels are white/blacklisted, then all voices channels are considered avaiable for announcing.
+
 * __prefix [prefix]__ - Sets the prefix to use for Announcord (defaults to `ann!`).
 * __announce-style [style]__ - Sets the announcement style. The allowed styles are `join`, `exit`, and `both` (default is `both`).
   * `join` - Announces only when users joins a channel.
