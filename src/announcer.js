@@ -2,9 +2,7 @@
 
 import Queue from './queue.js';
 import AnnouncementManager from './announcement.js';
-
-const winston = require('winston');
-const logger = require('./logger.js');
+import logger from './logger.js';
 
 class Announcer {
     constructor(guild, style, ignoreEmpty, voiceId, langCode, enterAlert, exitAlert, blacklist, whitelist) 

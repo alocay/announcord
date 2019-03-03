@@ -10,10 +10,10 @@
         "exitAlert": "%name has left the channel",
         "blacklist": [],
         "whitelist": [],
-        "version": "0.5.0"
+        "version": "0.6.3"
     },
     
     "token": "",
     "hardCodedPrefix": "ann$",
-    "logLevel": "info"
+    "logLevel": "debug"
 }

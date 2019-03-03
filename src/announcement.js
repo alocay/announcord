@@ -1,14 +1,8 @@
 "use strict";
 
-import * as AWS from 'aws-sdk';
 import * as Stream from 'stream';
-
+import { Polly } from './polly.js';
 const sprintf = require('sprintf-js').sprintf;
-
-const Polly = new AWS.Polly({
-    signatureVersion: 'v4',
-    region: 'us-east-1'
-});
 
 class AnnouncementManager {
     constructor(voiceId, langCode, enterAlert, exitAlert) 
