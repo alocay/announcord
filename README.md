@@ -14,7 +14,7 @@ If no channels are white/blacklisted, then all voices channels are considered av
   * `join` - Announces only when users joins a channel.
   * `exit` - Announces only when users exits a channel.
   * `both` - Announces when a user joins and exits a channel.
-* __ignoreEmpty__ - Bot will ignore users entering an empty channel or leaving a channel empty (default is to ignore).
+* __ignoreEmpty__ - Bot will ignore users entering an empty channel or leaving a channel empty (this is the default).
 * __includeEmpty__ - Bot will include all non-AFK channels (empty or not) when announcing a user.
 * __showVoices [lang/code (optional)]__ - Sends a DM containing available voices. If a language or language code is given, will filter out voices for those languages only.
 * __voice [voice ID]__ - Changes the voice matching the given ID. Use the `showVoices` command for a list of available voices.
