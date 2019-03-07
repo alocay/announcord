@@ -1,0 +1,41 @@
+body {
+  background-color: #32373b;
+  color: #dd9522; }
+  body .section {
+    margin-bottom: 50px; }
+  body .main-banner {
+    margin-top: 100px; }
+  body .brief-info .quick-list div {
+    margin: 0 auto 0 auto; }
+
+.pulse {
+  display: block;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 0 rgba(244, 175, 48, 0.4);
+  animation: pulse 10s infinite; }
+
+@-webkit-keyframes pulse {
+  0% {
+    -webkit-box-shadow: 0 0 0 0 rgba(244, 175, 48, 0.4); }
+  10% {
+    -webkit-box-shadow: 0 0 0 20px rgba(244, 175, 48, 0); }
+  20% {
+    -webkit-box-shadow: 0 0 0 0 rgba(244, 175, 48, 0); }
+  100% {
+    -webkit-box-shadow: 0 0 0 0 rgba(244, 175, 48, 0); } }
+@keyframes pulse {
+  0% {
+    -moz-box-shadow: 0 0 0 0 rgba(244, 175, 48, 0.4);
+    box-shadow: 0 0 0 0 rgba(244, 175, 48, 0.4); }
+  10% {
+    -moz-box-shadow: 0 0 0 20px rgba(244, 175, 48, 0);
+    box-shadow: 0 0 0 20px rgba(244, 175, 48, 0); }
+  20% {
+    -moz-box-shadow: 0 0 0 0 rgba(244, 175, 48, 0);
+    box-shadow: 0 0 0 0 rgba(244, 175, 48, 0); }
+  100% {
+    -moz-box-shadow: 0 0 0 0 rgba(244, 175, 48, 0);
+    box-shadow: 0 0 0 0 rgba(244, 175, 48, 0); } }
+
+/*# sourceMappingURL=styles.css.map */

@@ -1,0 +1,69 @@
+$bg-color: #32373b;
+$text-color: #dd9522;
+$pulse-color: rgba(244, 175, 48, 0.4);
+$pulse-color-noalpha: rgba(244, 175, 48, 0);
+$pulse-length: 10s;
+$pulse-size: 20px;
+ 
+body {
+    background-color: $bg-color;
+    color: $text-color;
+    
+    .section {
+        margin-bottom: 50px;
+    }
+    
+    .main-banner {
+        margin-top: 100px;
+    }
+    
+    .brief-info {
+        .quick-list {
+            div {
+                margin: 0 auto 0 auto;
+            }
+        }
+    }
+}
+
+.pulse {
+    display: block;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 0 $pulse-color;
+    animation: pulse $pulse-length infinite;
+}
+
+@-webkit-keyframes pulse {
+    0% {
+        -webkit-box-shadow: 0 0 0 0 $pulse-color;
+    }
+    10% {
+        -webkit-box-shadow: 0 0 0 $pulse-size $pulse-color-noalpha;
+    }
+    20% {
+        -webkit-box-shadow: 0 0 0 0 $pulse-color-noalpha;
+    }
+    100% {
+        -webkit-box-shadow: 0 0 0 0 $pulse-color-noalpha;
+    }
+}
+
+@keyframes pulse {
+    0% {
+        -moz-box-shadow: 0 0 0 0 $pulse-color;
+        box-shadow: 0 0 0 0 $pulse-color;
+    }
+    10% {
+        -moz-box-shadow: 0 0 0 $pulse-size $pulse-color-noalpha;
+        box-shadow: 0 0 0 $pulse-size $pulse-color-noalpha;
+    }
+    20% {
+        -moz-box-shadow: 0 0 0 0 $pulse-color-noalpha;
+        box-shadow: 0 0 0 0 $pulse-color-noalpha;
+    }
+    100% {
+        -moz-box-shadow: 0 0 0 0 $pulse-color-noalpha;
+        box-shadow: 0 0 0 0 $pulse-color-noalpha;
+    }
+}
