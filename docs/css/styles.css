@@ -7,13 +7,29 @@ body {
     margin-top: 100px; }
   body .brief-info .quick-list div {
     margin: 0 auto 0 auto; }
-
-.pulse {
-  display: block;
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 0 0 rgba(244, 175, 48, 0.4);
-  animation: pulse 10s infinite; }
+  body .btn-large {
+    background-color: #e67e22; }
+    body .btn-large:hover {
+      background-color: #f4af30; }
+  body .pulse {
+    display: block;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 0 rgba(244, 175, 48, 0.4);
+    animation: pulse 10s infinite; }
+  body li {
+    margin-bottom: 10px; }
+  body span.bold {
+    font-weight: 700; }
+  body .cmd {
+    font-weight: 300;
+    font-size: 1em;
+    color: #dd9522;
+    background-color: #262626;
+    border-radius: 5px;
+    padding: 2px 5px 2px 5px;
+    margin-bottom: 5px;
+    /*box-shadow:  0 4px 4px 0 rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.19);*/ }
 
 @-webkit-keyframes pulse {
   0% {

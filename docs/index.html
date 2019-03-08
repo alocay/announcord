@@ -48,7 +48,209 @@
                     </div>
                 </div>
                 <div class="section usage-info">
-                    <h5 class="center-align">Usage Info</h5>
+                    <h5 class="center-align">Configure Announcord</h5>
+                    <p>Announcord's behavior and settings can be tweaked to fit your needs using the commands below. All commands will need be to preceded by the command prefix (see below).</p>
+                    <p>
+                        <span class="bold">Note:</span> All commands and options are case-insensitive and can be trimmed down to a minimum of two characters. For commands with similar spelling, you will have to be more specific. 
+                        For example the <span class="cmd z-depth-2">prefix</span> command can be reduced to simply <span class="cmd z-depth-2">pr</span>.
+                    </p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <td>Command</td>
+                                <td>Description</td>
+                                <td>Usage</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="cmd z-depth-2">prefix</span></td>
+                                <td>Use to change the command prefix. The default is set to <span class="cmd z-depth-2">ann!</span>. The prefix <span class="cmd z-depth-2">ann$</span> is always available as an alternative.</td>
+                                <td><div class="cmd z-depth-2">ann!prefix <span class="option">text</span></div></td>
+                            </tr>
+                            <tr>
+                                <td><span class="cmd z-depth-2">announce-style</span></td>
+                                <td>
+                                    Change the announcement behavior to either only announce channel joins, exits, or both. The default is set to <span class="cmd z-depth-2 option">both</span>. <br /><br />
+                                    Alternate options are:
+                                    <ul>
+                                        <li><span class="cmd z-depth-2 option">join</span> to only have joins announced</li>
+                                        <li><span class="cmd z-depth-2 option">exit</span> to only have exits announced</li>
+                                    </ul>
+                                </td>
+                                <td>
+                                    <ul>
+                                        <li><div class="cmd z-depth-2">ann!announce-style <span class="option">both</span></div></li>
+                                        <li><div class="cmd z-depth-2">ann!announce-style <span class="option">join</span></div></li>
+                                        <li><div class="cmd z-depth-2">ann!announce-style <span class="option">exit</span></div></li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><span class="cmd z-depth-2">ignoreEmpty</span></td>
+                                <td>
+                                    Tells Announcord to ignore annoucing when a user enters an empty channel or is the last to leave a channel. This behavior is <span class="bold">on</span> by default.<br /><br />
+                                    See the <span class="cmd z-depth-2">includeEmpty</span> command to toggle this setting.
+                                </td>
+                                <td><div class="cmd z-depth-2">ann!ignoreEmpty</div></td>
+                            </tr>
+                            <tr>
+                                <td><span class="cmd z-depth-2">includeEmpty</span></td>
+                                <td>
+                                    Tells Announcord to annouce even when a user enters an empty channel or is the last to leave a channel. This behavior is <span class="bold">off</span> by default.<br /><br />
+                                    See the <span class="cmd z-depth-2">ignoreEmpty</span> command to toggle this setting.
+                                </td>
+                                <td><div class="cmd z-depth-2">ann!includeEmpty</div></td>
+                            </tr>
+                            <tr>
+                                <td><span class="cmd z-depth-2">showVoices</span></td>
+                                <td>
+                                    Sends a direct message containing available voices which can be filtered by providing a language or language code.<br /><br />
+                                    The supported languages (codes) are:
+                                    <ul>
+                                        <li><span class="cmd z-depth-2 option">US English (en-US)</span></li>
+                                        <li><span class="cmd z-depth-2 option">British English (en-GB)</span></li>
+                                        <li><span class="cmd z-depth-2 option">Australian (en-AU)</span></li>
+                                        <li><span class="cmd z-depth-2 option">Indian English (en-IN)</span></li>
+                                        <li><span class="cmd z-depth-2 option">Welsh English (en-GB-WLS)</span></li>
+                                        <li><span class="cmd z-depth-2 option">US Spanish (es-US)</span></li>
+                                        <li><span class="cmd z-depth-2 option">Castilian Spanish (es-ES)</span></li>
+                                        <li><span class="cmd z-depth-2 option">Mexican Spanish (es-MX)</span></li>
+                                        <li><span class="cmd z-depth-2 option">German (de-DE)</span></li>
+                                        <li><span class="cmd z-depth-2 option">Danish (da-DK)</span></li>
+                                        <li><span class="cmd z-depth-2 option">Canadian French (fr-CA)</span></li>
+                                        <li><span class="cmd z-depth-2 option">French (fr-FR)</span></li>
+                                        <li><span class="cmd z-depth-2 option">Icelandic (is-IS)</span></li>
+                                        <li><span class="cmd z-depth-2 option">Italian (it-IT)</span></li>
+                                        <li><span class="cmd z-depth-2 option">Japanese (jp-JP)</span></li>
+                                        <li><span class="cmd z-depth-2 option">Korean (ko-KR)</span></li>
+                                        <li><span class="cmd z-depth-2 option">Norwegian (nb-NO)</span></li>
+                                        <li><span class="cmd z-depth-2 option">Dutch (nl-NL)</span></li>
+                                        <li><span class="cmd z-depth-2 option">Polish (pl-PL)</span></li>
+                                        <li><span class="cmd z-depth-2 option">Brazilian Portuguese (pt-BR)</span></li>
+                                        <li><span class="cmd z-depth-2 option">Portuguese (pt-PT)</span></li>
+                                        <li><span class="cmd z-depth-2 option">Romanian (ro-RO)</span></li>
+                                        <li><span class="cmd z-depth-2 option">Russian (ru-RU)</span></li>
+                                        <li><span class="cmd z-depth-2 option">Swedish (sv-SE)</span></li>
+                                        <li><span class="cmd z-depth-2 option">Turkish (tr-TR)</span></li>
+                                    </ul>
+                                </td>
+                                <td>
+                                    <div class="cmd z-depth-2">ann!showVoices</div>
+                                    <div class="cmd z-depth-2">ann!showVoices <span class="option">english</span></div>
+                                    <div class="cmd z-depth-2">ann!showVoices <span class="option">es-es</span></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><span class="cmd z-depth-2">voice</span></td>
+                                <td>
+                                    Change the voice used by Announcord. The default is set to <span class="cmd z-depth-2 option">Matthew</span> (en-US). <br /><br />
+                                    There are various voice profiles that be used for the supported languages.
+                                </td>
+                                <td>
+                                    <ul>
+                                        <li><div class="cmd z-depth-2">ann!voice <span class="option">matthew</span></div></li>
+                                        <li><div class="cmd z-depth-2">ann!voice <span class="option">astrid</span></div></li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><span class="cmd z-depth-2">enterAlert</span></td>
+                                <td>
+                                    Sets the announcement message for when a user enters a channel. The word <span class="cmd z-depth-2 option">%name</span> can be used in the message and user's name will be used instead. <br /><br />
+                                    The default is set to <span class="cmd z-depth-2 option">%name has entered the channel</span> (en-US).
+                                </td>
+                                <td>
+                                    <ul>
+                                        <li><div class="cmd z-depth-2">ann!enterAlert <span class="option">text</span></div></li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><span class="cmd z-depth-2">exitAlert</span></td>
+                                <td>
+                                    Sets the announcement message for when a user exits a channel. The word <span class="cmd z-depth-2 option">%name</span> can be used in the message and user's name will be used instead. <br /><br />
+                                    The default is set to <span class="cmd z-depth-2 option">%name has left the channel</span> (en-US).
+                                </td>
+                                <td>
+                                    <ul>
+                                        <li><div class="cmd z-depth-2">ann!exitAlert <span class="option">text</span></div></li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><span class="cmd z-depth-2">whitelist</span></td>
+                                <td>
+                                    Places the given channel on a whitelist. If there are any channels on the whitelist <span class="bold">only</span> these channels will be announced in.
+                                    By default, the whitelist is empty and all channels will be announced in.<br /><br />
+                                    <span class="bold">Note:</span>The channel name can be truncated and the first channel found to match will be used.
+                                </td>
+                                <td>
+                                    <ul>
+                                        <li><div class="cmd z-depth-2">ann!whitelist <span class="option">channel</span></div></li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><span class="cmd z-depth-2">blacklist</span></td>
+                                <td>
+                                    Places the given channel on a blacklist. Any channels on the blacklist will <span class="bold">not</span> be announced in.
+                                    By default, the blacklist is empty and all channels will be announced in.<br /><br />
+                                    <span class="bold">Note:</span>The channel name can be truncated and the first channel found to match will be used.
+                                </td>
+                                <td>
+                                    <ul>
+                                        <li><div class="cmd z-depth-2">ann!blacklist <span class="option">channel</span></div></li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><span class="cmd z-depth-2">unlist</span></td>
+                                <td>
+                                    Removes the channel from either the whitelist or blacklist if it exists on any.<br /><br />
+                                    <span class="bold">Note:</span>The channel name can be truncated and the first channel found to match will be used.
+                                </td>
+                                <td>
+                                    <ul>
+                                        <li><div class="cmd z-depth-2">ann!unlist <span class="option">channel</span></div></li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><span class="cmd z-depth-2">settings</span></td>
+                                <td>
+                                    Sends an embedded message to the current text channel with the current Announcord configuration
+                                </td>
+                                <td>
+                                    <ul>
+                                        <li><div class="cmd z-depth-2">ann!settings</div></li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><span class="cmd z-depth-2">resetconfig</span></td>
+                                <td>
+                                    Reset all Announcord settings to their default values
+                                </td>
+                                <td>
+                                    <ul>
+                                        <li><div class="cmd z-depth-2">ann!resetconfig</div></li>
+                                    </ul>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><span class="cmd z-depth-2">help</span></td>
+                                <td>
+                                    Sends a direct message with help and command information
+                                </td>
+                                <td>
+                                    <ul>
+                                        <li><div class="cmd z-depth-2">ann!help</div></li>
+                                    </ul>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </main>

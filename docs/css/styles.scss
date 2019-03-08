@@ -4,6 +4,9 @@ $pulse-color: rgba(244, 175, 48, 0.4);
 $pulse-color-noalpha: rgba(244, 175, 48, 0);
 $pulse-length: 10s;
 $pulse-size: 20px;
+$cmd-badge-bg: #262626;
+$invite-button: #e67e22;
+$invite-button-hover: #f4af30;
  
 body {
     background-color: $bg-color;
@@ -24,14 +27,43 @@ body {
             }
         }
     }
-}
-
-.pulse {
-    display: block;
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 0 0 $pulse-color;
-    animation: pulse $pulse-length infinite;
+    
+    .btn-large {
+        background-color: $invite-button;
+        
+        &:hover {
+            background-color: $invite-button-hover;
+        }
+    }
+    
+    .pulse {
+        display: block;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 0 0 $pulse-color;
+        animation: pulse $pulse-length infinite;
+    }
+    
+    li {
+        margin-bottom: 10px;
+    }
+    
+    span {
+        &.bold {
+            font-weight: 700;
+        }
+    }
+    
+    .cmd {
+        font-weight: 300;
+        font-size: 1em;
+        color: $text-color;
+        background-color: $cmd-badge-bg;
+        border-radius: 5px;
+        padding: 2px 5px 2px 5px;
+        margin-bottom: 5px;
+        /*box-shadow:  0 4px 4px 0 rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.19);*/
+    }
 }
 
 @-webkit-keyframes pulse {
