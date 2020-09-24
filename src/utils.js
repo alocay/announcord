@@ -45,7 +45,7 @@ export function findMember(partialName, members) {
         }
     });
 
-    if (!member) return null;
+    if (!member) return { id: null, name: null };
 
     const name = member.nickname ? member.nickname : member.user.username;
     const id = member.user.id;
