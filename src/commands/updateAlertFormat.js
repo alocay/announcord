@@ -6,7 +6,7 @@ const { defaultSettings } = require('../config.json');
 
 function setEnterAlertFormat(message, alertArgs) {
     logger.debug('Setting enter alert format...');
-    
+   
     const alertFormat = verifyAlertFormat(alertArgs);
     
     logger.debug(`Alert format: ${alertFormat}`);
@@ -45,7 +45,7 @@ function verifyAlertFormat(alertArgs) {
         message.reply('You must provide an alert when setting the alert');
         return null;
     }
-    
+  
     const alertFormat = alertArgs.join(' ').trim();
     
     if (!alertFormat || alertFormat === "") {
@@ -74,5 +74,5 @@ export default [
         description: "Changes the exit alert message format. Use `%name` for the exiting user's name. Max length allowed is 150 characters not including `%name`.",
         usage: 'exitAlert <format>',
         action: setExitAlertFormat
-    }
+    },
 ];

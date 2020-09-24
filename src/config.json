@@ -10,7 +10,9 @@
         "exitAlert": "%name has left the channel",
         "blacklist": [],
         "whitelist": [],
-        "version": "0.6.3"
+        "version": "0.7.0",
+        "userVoices": {},
+        "userAlerts": {}
     },
     
     "token": "",

@@ -1,5 +1,5 @@
 import bot from '../bot.js';
-import { findChannel } from '../util.js';
+import { findChannel } from '../utils.js';
 import logger from '../logger.js';
 import { removeChannelFromWhitelist } from './whitelistChannel.js';
 import { updateWhiteAndBlacklist } from './unlistChannel.js';

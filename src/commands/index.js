@@ -12,6 +12,9 @@ import toggleIgnoreEmpty from './toggleIgnoreEmpty.js';
 import unlistChannel from './unlistChannel.js';
 import updateAlertFormat from './updateAlertFormat.js';
 import whitelistChannel from './whitelistChannel.js';
+import clearVoice from './clearVoice.js';
+import updateUserAlert from './updateUserAlert.js';
+import clearAlert from './clearAlert.js';
 
 // Note: Order of the commands here will affect how they appear in the help info
 const cmdsArray = [
@@ -20,7 +23,10 @@ const cmdsArray = [
     toggleIgnoreEmpty,
     getVoices,
     setVoice,
+    clearVoice,
     updateAlertFormat,
+    updateUserAlert,
+    clearAlert,
     blacklistChannel,
     whitelistChannel, 
     unlistChannel,
@@ -36,7 +42,7 @@ function setupCommands() {
     for(let i = 0; i < flatCmds.length; i++) {
         commands.set(flatCmds[i].name, flatCmds[i]);
     }
-    
+
     return commands;
 }
 

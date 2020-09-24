@@ -5,10 +5,10 @@ import AnnouncementManager from './announcement.js';
 import logger from './logger.js';
 
 class Announcer {
-    constructor(guild, style, ignoreEmpty, voiceId, langCode, enterAlert, exitAlert, blacklist, whitelist) 
+    constructor(guild, style, ignoreEmpty, voiceId, langCode, enterAlert, exitAlert, userVoices, userAlerts, blacklist, whitelist) 
     {
         logger.debug(`blacklist: ${blacklist} | whitelist: ${whitelist}`);
-        this.announcementManager = new AnnouncementManager(voiceId, langCode, enterAlert, exitAlert);
+        this.announcementManager = new AnnouncementManager(voiceId, userVoices, userAlerts, langCode, enterAlert, exitAlert);
         this.announceQueue = new Queue();
         this.announcing = false;
         this.guild = guild;
@@ -21,7 +21,26 @@ class Announcer {
     updateVoiceId(voiceId, languageCode) {
         this.announcementManager.updateVoiceId(voiceId, languageCode);
     }
+ 
+    updateUserVoiceId(userId, voiceId, langCode) {
+        this.announcementManager.updateUserVoiceId(userId, voiceId, langCode);
+    }
     
+    updateUserVoices(userVoices) {
+        this.announcementManager.updateUserVoices(userVoices);
+    }
+
+    updateUserAlerts(alerts) {
+        this.announcementManager.updateUserAlerts(alerts);
+    }
+
+    updateUserEnterAlert(userId, format) {
+        this.announcementManager.updateUserEnterAlert(userId, format);
+    }
+
+    updateUserExitAlert(userId, format) {
+        this.announcementManager.updateUserExitAlert(userId, format);
+    }   
     updateEnterAlert(format) {
         this.announcementManager.updateEnterAlert(format);
     }
@@ -73,39 +92,39 @@ class Announcer {
                 
                 if (currentBotChannel && currentBotChannel.id === oldChannel.id) {
                     logger.debug('exit first');
-                    this.queueExitFirstAsync(username, newChannel, oldChannel);
+                    this.queueExitFirstAsync(username, userid, newChannel, oldChannel);
                 } else {
                     logger.debug('any or enter first');
-                    this.queueJoinFirstAsync(username, newChannel, oldChannel);
+                    this.queueJoinFirstAsync(username, userid, newChannel, oldChannel);
                 }
                 
             }
         } else if (oldChannel) {
-            this.queueExitAsync(username, oldChannel, true);
+            this.queueExitAsync(username, userid, oldChannel, true);
         } else if (newChannel) {
-            this.queueJoinAsync(username, newChannel, true);
+            this.queueJoinAsync(username, userid, newChannel, true);
         }
     }
     
-    async queueJoinFirstAsync(username, newChannel, oldChannel) {
-        await this.queueJoinAsync(username, newChannel, false);        
-        await this.queueExitAsync(username, oldChannel, false);
+    async queueJoinFirstAsync(username, userId, newChannel, oldChannel) {
+        await this.queueJoinAsync(username, userId, newChannel, false);        
+        await this.queueExitAsync(username, userId, oldChannel, false);
         
         this.startAnnouncing();
     }
     
-    async queueExitFirstAsync(username, newChannel, oldChannel) {
-        await this.queueExitAsync(username, oldChannel, false);
-        await this.queueJoinAsync(username, newChannel, false);
+    async queueExitFirstAsync(username, userId, newChannel, oldChannel) {
+        await this.queueExitAsync(username, userId, oldChannel, false);
+        await this.queueJoinAsync(username, userId, newChannel, false);
         
         this.startAnnouncing();
     }
     
-    async queueJoinAsync(username, channel, startAnnouncing) {
+    async queueJoinAsync(username, userId, channel, startAnnouncing) {
         if (this.shouldAnnounceTheJoin(channel.memberCount)) {
             if (this.isChannelWhitelisted(channel.id) || !(this.anyChannelWhitelisted() || this.isChannelBlacklisted(channel.id))) { 
                 logger.debug('announce join');
-                await this.createAndQueueAnnouncement(username, channel, true);
+                await this.createAndQueueAnnouncement(username, userId, channel, true);
             } else {
                 logger.debug('Channel is blacklisted or not on whitelist - ignoring join');
             }
@@ -118,11 +137,11 @@ class Announcer {
         }
     }
     
-    async queueExitAsync(username, channel, startAnnouncing) {
+    async queueExitAsync(username, userId, channel, startAnnouncing) {
         if (this.shouldAnnounceTheExit(channel.memberCount)) {
             if (this.isChannelWhitelisted(channel.id) || !(this.anyChannelWhitelisted() || this.isChannelBlacklisted(channel.id))) { 
                 logger.debug('exit announce');
-                await this.createAndQueueAnnouncement(username, channel, false);
+                await this.createAndQueueAnnouncement(username, userId, channel, false);
             } else {
                 logger.debug('Channel is blacklisted or not on whitelist - ignoring exit');
             }
@@ -135,9 +154,9 @@ class Announcer {
         }
     }
     
-    async createAndQueueAnnouncement(username, channel, entered) {        
+    async createAndQueueAnnouncement(username, userId, channel, entered) {        
         logger.debug('announcing and starting promise');
-        const ann = await this.announcementManager.createAnnouncement(username, channel, entered);
+        const ann = await this.announcementManager.createAnnouncement(username, userId, channel, entered);
         this.queueAnnouncement(ann);
     }
     
@@ -164,6 +183,7 @@ class Announcer {
     
     announce(announcement) {
         if (announcement && announcement.channel && announcement.stream) {
+            logger.debug('joining and announcing...');
             announcement.channel.join().then(this.onChannelJoined.bind(this, announcement));
         } else {
             logger.debug('something was null in the announcement - skipping', announcement);
@@ -172,12 +192,12 @@ class Announcer {
     }
     
     onChannelJoined(announcement, connection) {
+        logger.debug('dipatching play...');
         const dispatcher = connection.play(announcement.stream);                
-        dispatcher.on('end', () => { 
-            //logger.debug('ended!');
-            //announcement.stream.destroy(new Error('error destroying'));
-            //announcement.channel.leave();
-            this.annouceNextUser();
+        dispatcher.on('speaking', (isSpeaking) => { 
+            if (!isSpeaking) {
+                this.annouceNextUser();
+            }
         });
     }
     

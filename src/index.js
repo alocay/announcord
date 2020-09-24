@@ -16,8 +16,7 @@ const currentVersion = defaultSettings.version;
 
 bot.once('ready', () => {
     logger.info('Initializing bot...');
-    
-    bot.guilds.forEach((guild) => {
+    bot.guilds.cache.forEach((guild) => {
         const settings = bot.settings.ensure(guild.id, defaultSettings);
         checkAndUpdateConfig(guild.id, settings);
         
@@ -31,6 +30,8 @@ bot.once('ready', () => {
                 settings.languageCode, 
                 settings.enterAlert, 
                 settings.exitAlert,
+                settings.userVoices,
+                settings.userAlerts,
                 settings.blacklist,
                 settings.whitelist
             )
@@ -53,7 +54,7 @@ bot.on('guildDelete', guild => {
 bot.on('voiceStateUpdate', (oldState, newState) => { 
     if (newState.member.user.bot) return;
     
-    const voiceStateGuild = bot.guilds.get(newState.guild.id);
+    const voiceStateGuild = bot.guilds.cache.get(newState.guild.id);
     
     let newChannel = newState ? newState.channel : null;
     let oldChannel = oldState ? oldState.channel : null;
@@ -119,14 +120,9 @@ function checkAndUpdateConfig(guildId, config) {
 }
 
 function init() {
-
-    //bot.login(token);
-    
     bot.settings.defer.then(() => {
         bot.login(token);
     });
-    //const port = process.env.PORT || 9090;
-    //app.listen(port, () => logger.info(`Express server listening on port ${port}`));
 }
 
 process.on('unhandledRejection', err => logger.error(`Uncaught Promise Rejection:\n${err}`));
