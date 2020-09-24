@@ -11,7 +11,7 @@ function displayHelp(message, helpArgs, commands) {
         message.author.send(helpEmbed);
         message.reply('A DM has been sent with the help info');
     } catch(e) {
-        console.log(e);
+        logger.error(e);
         logger.error('Error display help', e);
     }
 }

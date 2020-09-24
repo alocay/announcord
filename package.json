@@ -12,16 +12,16 @@
   "author": "Armando Locay",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.630.0",
+    "@discordjs/opus": "^0.3.2",
+    "aws-sdk": "^2.760.0",
     "better-sqlite-pool": "^0.2.3",
-    "discord.js": "^12.0.1",
-    "enmap": "^5.2.4",
+    "discord.js": "^12.3.1",
+    "enmap": "^5.8.0",
     "express": "^4.17.1",
-    "ffmpeg-static": "^4.0.1",
-    "node-opus": "^0.3.3",
-    "semver": "^7.1.3",
+    "ffmpeg-static": "^4.2.7",
+    "semver": "^7.3.2",
     "sprintf-js": "^1.1.2",
-    "winston": "^3.2.1"
+    "winston": "^3.3.3"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",

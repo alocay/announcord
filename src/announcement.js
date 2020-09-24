@@ -29,8 +29,6 @@ class AnnouncementManager {
                 this.userAlerts[v].exit = this.userAlerts[v].exit.replace('%name', '%1$s');
             }
         });
-
-        console.log(this.userAlerts);
     }
 
     updateVoiceId(voiceId, langCode) {
@@ -115,7 +113,7 @@ class AnnouncementManager {
         const exitAlert = this.userAlerts[userId] && this.userAlerts[userId].exit ? this.userAlerts[userId].exit : this.exitAlert;
         const langCode = this.userVoices[userId] ? this.userVoices[userId].langCode : this.languageCode;
         const voiceId = this.userVoices[userId] ? this.userVoices[userId].voice : this.voiceId;
-        console.log(enterAlert);
+        logger.debug('Enter alert: ' + enterAlert);
         const text = sprintf((entered ? enterAlert : exitAlert), username);
         
         let params = {
@@ -141,7 +139,7 @@ class AnnouncementManager {
     
     onSpeechSynthesized(resolve, reject, err, data) {
         if (err) {
-            console.log('on synth error: ' + err.code);
+            logger.error('on synth error: ' + err.code);
             reject(err);
         } else if (data) {
             if (data.AudioStream instanceof Buffer) {
