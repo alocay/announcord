@@ -17,7 +17,7 @@
     "better-sqlite-pool": "^0.2.3",
     "discord.js": "^12.3.1",
     "enmap": "^5.8.0",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "ffmpeg-static": "^4.2.7",
     "semver": "^7.3.2",
     "sprintf-js": "^1.1.2",
