@@ -1,0 +1,17 @@
+{
+    "defaultSettings": {
+        "voice": "Matthew",
+        "language": "US English",
+        "languageCode": "en-US",
+        "enterAlert": "%name has entered the channel",
+        "exitAlert": "%name has left the channel",
+        "version": "0.0.5",
+        "userVoices": {},
+        "userAlerts": {},
+        "announcementChannelId": "",
+        "enabled": true
+    },
+
+    "token": "token",
+    "logLevel": "debug"
+}

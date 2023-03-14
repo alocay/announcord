@@ -1,0 +1,284 @@
+"use strict";
+
+import { Queue } from '@datastructures-js/queue';
+import { Guild, VoiceState } from 'discord.js';
+import { joinVoiceChannel } from '@discordjs/voice';
+import AnnouncementManager from './announcementManager.js';
+import Announcement from './interfaces/announcement.js';
+import UserAlert from './interfaces/userAlert';
+import UserVoice from './interfaces/userVoice';
+import logger from './logger.js';
+
+class Announcer {
+    guild: Guild;
+    announcementStyle: AnnouncementStyle;
+    ignoreEmptyChannels: boolean;
+    blacklist: string[];
+    whitelist: string[];
+    announcementManager: AnnouncementManager;
+    announceQueue: Queue<Announcement>;
+    announcing: boolean;
+
+    constructor(
+        guild: Guild,
+        announcementStyle: AnnouncementStyle,
+        ignoreEmptyChannels: boolean,
+        voiceId: string,
+        languageCode: string,
+        defaultEnterAlert: string,
+        defaultExitAlert: string,
+        userVoices: Map<string, UserVoice>,
+        userAlerts: Map<string, UserAlert>,
+        blacklist: string[],
+        whitelist: string[])
+    {
+        logger.debug(`blacklist: ${blacklist} | whitelist: ${whitelist}`);
+        this.announcementManager = new AnnouncementManager(
+            voiceId,
+            userVoices,
+            userAlerts,
+            languageCode,
+            defaultEnterAlert,
+            defaultExitAlert);
+        this.announceQueue = new Queue();
+        this.announcing = false;
+        this.guild = guild;
+        this.announcementStyle = announcementStyle;
+        this.ignoreEmptyChannels = ignoreEmptyChannels;
+        this.blacklist = blacklist;
+        this.whitelist = whitelist;
+    }
+    
+    updateVoiceId(voiceId: string, languageCode: string) {
+        this.announcementManager.updateVoiceId(voiceId, languageCode);
+    }
+ 
+    updateUserVoiceId(userId: string, voiceId: string, langCode: string) {
+        this.announcementManager.updateUserVoiceId(userId, voiceId, langCode);
+    }
+    
+    updateUserVoices(userVoices) {
+        this.announcementManager.updateUserVoices(userVoices);
+    }
+
+    updateUserAlerts(alerts) {
+        this.announcementManager.updateUserAlerts(alerts);
+    }
+
+    updateUserEnterAlert(userId: string, format: string) {
+        this.announcementManager.updateUserEnterAlert(userId, format);
+    }
+
+    updateUserExitAlert(userId: string, format: string) {
+        this.announcementManager.updateUserExitAlert(userId, format);
+    }   
+    updateEnterAlert(format: string) {
+        this.announcementManager.updateEnterAlert(format);
+    }
+    
+    updateExitAlert(format: string) {
+        this.announcementManager.updateExitAlert(format);
+    }
+    
+    updateAnnouncementStyle(style: string) {
+        if (!style) return;
+        
+        this.announcementStyle = style.toLowerCase();
+    }
+    
+    updateIgnoreEmpty(isEnabled: boolean) {
+        if(isEnabled === null || isEnabled === undefined) return;
+        
+        this.ignoreEmptyChannels = isEnabled;
+    }
+    
+    updateBlacklist(blacklist: string[]) {
+        this.blacklist = blacklist;
+    }
+    
+    updateWhitelist(whitelist: string[]) {
+        this.whitelist = whitelist;
+    }
+    
+    handleVoiceUpdate(username: string, userid: string, oldState: VoiceState, newState: VoiceState) {
+        if (oldState && oldState.channelId === this.guild.afkChannelId) {
+            oldState = null;
+        } else if (newState && newState.channelId === this.guild.afkChannelId) {
+            newState = null;
+        }
+
+        logger.debug('********* new update ************');
+        
+        if (oldState && newState) {
+            if(oldState.channelId !== newState.channelId) {
+                const currentBotChannel = voiceConnection ? voiceConnection.channel : null;
+                
+                if (currentBotChannel && currentBotChannel.id === oldState.id) {
+                    logger.debug('exit first');
+                    this.queueExitFirstAsync(username, userid, newChannel, oldState);
+                } else {
+                    logger.debug('any or enter first');
+                    this.queueJoinFirstAsync(username, userid, newChannel, oldState);
+                }
+                
+            }
+        } else if (oldState) {
+            this.queueExitAsync(username, userid, oldState, true);
+        } else if (newChannel) {
+            this.queueJoinAsync(username, userid, newChannel, true);
+        }
+    }
+    
+    async queueJoinFirstAsync(username: string, userId: string, newChannel, oldChannel) {
+        await this.queueJoinAsync(username, userId, newChannel, false);
+        await this.queueExitAsync(username, userId, oldChannel, false);
+        
+        this.startAnnouncing();
+    }
+    
+    async queueExitFirstAsync(username: string, userId: string, newChannel, oldChannel) {
+        await this.queueExitAsync(username, userId, oldChannel, false);
+        await this.queueJoinAsync(username, userId, newChannel, false);
+        
+        this.startAnnouncing();
+    }
+    
+    async queueJoinAsync(username: string, userId: string, channel, startAnnouncing) {
+        if (this.shouldAnnounceTheJoin(channel.memberCount)) {
+            if (this.isChannelWhitelisted(channel.id) || !(this.anyChannelWhitelisted() || this.isChannelBlacklisted(channel.id))) { 
+                logger.debug('announce join');
+                await this.createAndQueueAnnouncement(username, userId, channel, true);
+            } else {
+                logger.debug('Channel is blacklisted or not on whitelist - ignoring join');
+            }
+        } else {
+            logger.debug('skipping init join announce');
+        }
+        
+        if (startAnnouncing) {
+            this.startAnnouncing();
+        }
+    }
+    
+    async queueExitAsync(username: string, userId: string, channel, startAnnouncing) {
+        if (this.shouldAnnounceTheExit(channel.memberCount)) {
+            if (this.isChannelWhitelisted(channel.id) || !(this.anyChannelWhitelisted() || this.isChannelBlacklisted(channel.id))) { 
+                logger.debug('exit announce');
+                await this.createAndQueueAnnouncement(username, userId, channel, false);
+            } else {
+                logger.debug('Channel is blacklisted or not on whitelist - ignoring exit');
+            }
+        } else {
+            logger.debug('skipping exit announce');
+        }
+        
+        if (startAnnouncing) {
+            this.startAnnouncing();
+        }
+    }
+    
+    async createAndQueueAnnouncement(username: string, userId: string, channel, entered) {        
+        logger.debug('announcing and starting promise');
+        const ann = await this.announcementManager.createAnnouncement(username, userId, channel, entered);
+        this.queueAnnouncement(ann);
+    }
+    
+    startAnnouncing() {
+        if (!this.announcing) {
+            this.annouceNextUser();
+        }
+    }
+    
+    annouceNextUser() {
+        this.announcing = true;
+        
+        logger.debug('annoucement queue: ' + this.announceQueue.size());
+        const announcement = this.announceQueue.dequeue();
+        
+        if (announcement) {
+            logger.debug('got next announcement... annoucing...');
+            this.announce(announcement);
+        } else {
+            logger.debug('no more annoucements');
+            this.announcing = false;
+        }
+    }
+    
+    announce(announcement) {
+        if (announcement && announcement.channel && announcement.stream) {
+            logger.debug('joining and announcing...');
+            announcement.channel.join().then(this.onChannelJoined.bind(this, announcement));
+        } else {
+            logger.debug('something was null in the announcement - skipping', announcement);
+            this.annouceNextUser();
+        }
+    }
+    
+    onChannelJoined(announcement, connection) {
+        logger.debug('dipatching play...');
+        const dispatcher = connection.play(announcement.stream);                
+        dispatcher.on('speaking', (isSpeaking) => { 
+            if (!isSpeaking) {
+                this.annouceNextUser();
+            }
+        });
+    }
+    
+    queueAnnouncement(ann) {
+        logger.debug('announcement queued');
+        this.announceQueue.enqueue(ann);
+    }
+    
+    getChannelMemberCount(channel, idToIgnore) {
+        let size = 0;
+        channel.members.forEach((v, k, m) => {
+            if (!v.user.bot && v.user.id !== idToIgnore) 
+                size++;
+        });
+        
+        return size;
+    }
+    
+    shouldAnnounceJoins() {
+        return this.announcementStyle === 'both' || this.announcementStyle === 'join';
+    }
+    
+    shouldAnnounceExits() {
+        return this.announcementStyle === 'both' || this.announcementStyle === 'exit';
+    }
+    
+    anyChannelWhitelisted() {
+        logger.debug(`is any channel whitelisted: ${this.whitelist.length > 0}`)
+        return this.whitelist.length > 0;
+    }
+    
+    isChannelWhitelisted(channelId) {
+        const isWhitelisted = this.whitelist.find(id => id === channelId) !== undefined;
+        logger.debug(`is channel ${channelId} whitelisted: ${isWhitelisted}`);
+        return isWhitelisted;
+    }
+    
+    isChannelBlacklisted(channelId) {
+        const isBlacklisted = this.blacklist.find(id => id === channelId) !== undefined;
+        logger.debug(`is channel ${channelId} blacklisted: ${isBlacklisted}`);
+        return isBlacklisted;
+    }
+    
+    shouldAnnounceTheJoin(memberCount) {
+        logger.debug('join: ' + memberCount);
+        logger.debug(`ignore empty? ${this.ignoreEmptyChannels}`);
+        logger.debug(`should announce joins: ${this.shouldAnnounceJoins()} - ${this.announcementStyle}`);
+        logger.debug(`checking ignore: ${(!this.ignoreEmptyChannels || (this.ignoreEmptyChannels && memberCount > 0))}`);
+        return this.shouldAnnounceJoins() && (!this.ignoreEmptyChannels || (this.ignoreEmptyChannels && memberCount > 0));
+    }
+    
+    shouldAnnounceTheExit(memberCount) {
+        logger.debug('exit: ' + memberCount);
+        logger.debug(`ignore empty? ${this.ignoreEmptyChannels}`);
+        logger.debug(`should announce exits: ${this.shouldAnnounceExits()}`);
+        logger.debug(`checking ignore: ${(!this.ignoreEmptyChannels || (this.ignoreEmptyChannels && memberCount > 0))}`);
+        return this.shouldAnnounceExits() && (!this.ignoreEmptyChannels || (this.ignoreEmptyChannels && memberCount > 0));
+    }
+}
+
+export default Announcer;
