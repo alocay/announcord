@@ -30,6 +30,7 @@ export const GetVoices: Command = {
         const option = interaction.options.get("language");
         const language = findLanguage(option, interaction.guildId);
         let voices = Utils.getVoicesByLanguage(language);
+        console.log(voices);
 
         if (!voices || voices.length === 0) {
             logger.debug(`No voices found for filter ${option?.value} - sending back all voices`);

@@ -1,4 +1,4 @@
-import { CommandInteraction, Client, Interaction, Events, ChatInputCommandInteraction } from "discord.js";
+import { Client, Interaction, Events, ChatInputCommandInteraction } from "discord.js";
 import { Commands } from "../botCommands";
 
 export function interactionCreateListener(client: Client): void {

@@ -2,8 +2,6 @@
 
 import { sprintf } from 'sprintf-js';
 import { PollySpeech } from './speech';
-import UserAlert from './interfaces/userAlert';
-import UserVoice from './interfaces/userVoice';
 import Announcement from './interfaces/announcement';
 import loggerModule from "./logger";
 import { GuildMember } from 'discord.js';
@@ -27,7 +25,8 @@ export default class AnnouncementManager {
         const text: string = this.getAlertText(username, member.id, entered);
         const voiceId: string = this.getVoiceId(member.id);
         const langCode: string = this.getLanguageCode(member.id);
-        const stream = await this.pollySpeech.getSpeechStream(text, voiceId, langCode);
+        const engine: string = this.getEngine(member.id);
+        const stream = await this.pollySpeech.getSpeechStream(text, voiceId, langCode, engine);
 
         return {
             username,
@@ -59,8 +58,15 @@ export default class AnnouncementManager {
     }
 
     getVoiceId(userId: string): string {
+        logger.debug(`Get voice ID - guildId: ${this.guildId}, userId: ${userId}`);
         const userVoice = SettingsManager.getUserVoice(this.guildId, userId);
-        return userVoice.voice || SettingsManager.get(this.guildId, settingsKeys.VOICE);
+        return userVoice?.voice || SettingsManager.get(this.guildId, settingsKeys.VOICE);
+    }
+
+    getEngine(userId: string): string {
+        logger.debug(`Get engine - guildId: ${this.guildId}, userId: ${userId}`);
+        const engine = SettingsManager.getUserVoiceEngine(this.guildId, userId);
+        return engine || "standard";
     }
 
     reformatAlert(format: string): string {

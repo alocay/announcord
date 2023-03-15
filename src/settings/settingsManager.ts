@@ -7,14 +7,23 @@ import UserVoice from "../interfaces/userVoice";
 import UserAlert from "../interfaces/userAlert";
 
 const logger = loggerModule(__filename);
+const NEURAL_ENGINE = "neural";
+const STANDARD_ENGINE = "standard";
 
 export default class SettingsManager {
     static update(guildId: string | undefined, key: string, value: any) {
         SettingsManager.assertId(guildId, `Cannot update setting ${key} - No guild ID given`);
 
+        logger.debug("Updating settings...");
+
         const settings = BotSettings.settings.get(guildId);
+        console.log(settings);
         settings[key] = value;
         BotSettings.settings.set(guildId, settings);
+        const s =  BotSettings.settings.get(guildId);
+        console.log(`${guildId} - ${key}`);
+        console.log(value);
+        console.log(s);
     }
 
     static updateUserVoice(guildId: string | undefined, userId: string | undefined, voice: Voice) {
@@ -23,7 +32,8 @@ export default class SettingsManager {
 
         const settings: GuildSettings = BotSettings.settings.get(guildId);
         const userVoices: UserVoices = settings.userVoices;
-        userVoices[userId] = { voice: voice.Name, languageCode: voice.LanguageCode };
+        const engine = voice.SupportedEngines?.includes(NEURAL_ENGINE) ? NEURAL_ENGINE : STANDARD_ENGINE;
+        userVoices[userId] = { voice: voice.Name, languageCode: voice.LanguageCode, engine };
         SettingsManager.update(guildId, settingsKeys.USER_VOICES, userVoices);
     }
 
@@ -53,6 +63,14 @@ export default class SettingsManager {
 
         const settings = BotSettings.settings.get(guildId);
         return settings[key];
+    }
+
+    static getUserVoiceEngine(guildId: string | undefined, userId: string | undefined): string | undefined | null {
+        SettingsManager.assertId(guildId, `Cannot get user voice engine for ${userId} - No guild ID given`);
+        SettingsManager.assertId(userId, "Cannot get user voice engine - no user ID given");
+
+        const userVoices: UserVoices = SettingsManager.get(guildId, settingsKeys.USER_VOICES);
+        return userVoices[userId]?.engine;
     }
 
     static getUserVoice(guildId: string | undefined, userId: string | undefined): UserVoice {
