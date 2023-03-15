@@ -1,5 +1,6 @@
 import winston from "winston";
 import Path from 'path'
+// @ts-ignore
 import { logLevel } from "./config.json";
 
 const { combine, timestamp, label, printf } = winston.format;

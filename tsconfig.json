@@ -1,7 +1,7 @@
 	{
     "compilerOptions": {
         "target": "ESNext",
-        "module": "commonjs",
+        "module": "CommonJS",
         "rootDir": "./src/",
         "outDir": "./dist/",
         "strict": true,
@@ -21,7 +21,7 @@
         "baseUrl": "./"
     },
     "files": [
-        "src/announcord.ts"
+        "src/index.ts"
     ],
     "include": [
         "./**/*.ts"

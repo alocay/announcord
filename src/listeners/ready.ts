@@ -19,7 +19,6 @@ export function readyListener(client: Client): void {
             const settings: GuildSettings = BotSettings.settings.ensure(guild.id, defaultSettings);
             BotSettings.checkAndUpdateConfig(guild.id, settings);
 
-            logger.debug("Announcement channel: " + settings.announcementChannelId);
             if (!settings.announcementChannelId) {
                 const channels = await guild.channels.fetch();
                 const c = channels.find((c) => c?.type === ChannelType.GuildVoice);
@@ -31,6 +30,6 @@ export function readyListener(client: Client): void {
         VoiceCache.init();
         VoiceConnectionManager.init();
 
-        logger.debug(`${client.user.username} is online`);
+        logger.info(`${client.user.username} is online`);
     });
 };

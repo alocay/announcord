@@ -1,9 +1,12 @@
 {
   "scripts": {
-    "start": "ts-node src/announcord.ts"
+    "start": "ts-node src/index.ts",
+    "docker-build": "docker build -t announcord-bot .",
+    "docker": "docker run announcord-bot"
   },
   "dependencies": {
     "@aws-sdk/client-polly": "^3.287.0",
+    "@aws-sdk/client-secrets-manager": "^3.290.0",
     "@datastructures-js/queue": "^4.2.3",
     "@discordjs/opus": "^0.9.0",
     "@discordjs/voice": "^0.14.0",
