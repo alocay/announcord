@@ -19,9 +19,6 @@ export function readyListener(client: Client): void {
             const settings: GuildSettings = BotSettings.settings.ensure(guild.id, defaultSettings);
             BotSettings.checkAndUpdateConfig(guild.id, settings);
 
-            console.log(guild.name);
-            console.log(settings);
-
             if (!settings.announcementChannelId) {
                 const channels = await guild.channels.fetch();
                 const c = channels.find((c) => c?.type === ChannelType.GuildVoice);

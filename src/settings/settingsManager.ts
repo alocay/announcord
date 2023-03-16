@@ -17,13 +17,9 @@ export default class SettingsManager {
         logger.debug("Updating settings...");
 
         const settings = BotSettings.settings.get(guildId);
-        console.log(settings);
         settings[key] = value;
         BotSettings.settings.set(guildId, settings);
         const s =  BotSettings.settings.get(guildId);
-        console.log(`${guildId} - ${key}`);
-        console.log(value);
-        console.log(s);
     }
 
     static updateUserVoice(guildId: string | undefined, userId: string | undefined, voice: Voice) {

@@ -5,6 +5,14 @@ const logger = loggerModule(__filename);
 
 export default class ErrorUtils {
     public static async handleInteractionError(error: unknown, interaction: CommandInteraction) {
+        ErrorUtils.handleError(error);
+        await interaction.followUp({
+            ephemeral: true,
+            content: "Oops something went wrong"
+        });
+    }
+
+    public static async handleError(error: unknown, message?: string | undefined) {
         let errorMessage = "An error occurred";
 
         if (typeof error === "string") {
@@ -13,10 +21,6 @@ export default class ErrorUtils {
             errorMessage = error.message;
         }
 
-        logger.error(errorMessage);
-        await interaction.followUp({
-            ephemeral: true,
-            content: "Oops something went wrong"
-        });
+        logger.error(message ? `${message}: ${errorMessage}` : errorMessage);
     }
 }

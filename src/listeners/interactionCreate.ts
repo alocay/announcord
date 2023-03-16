@@ -1,5 +1,9 @@
 import { Client, Interaction, Events, ChatInputCommandInteraction } from "discord.js";
+import loggerModule from "../logger";
 import { Commands } from "../botCommands";
+import ErrorUtils from "src/errors/errorUtils";
+
+const logger = loggerModule(__filename);
 
 export function interactionCreateListener(client: Client): void {
     client.on(Events.InteractionCreate, async (interaction: Interaction) => {
@@ -12,11 +16,17 @@ export function interactionCreateListener(client: Client): void {
 const handleSlashCommand = async (client: Client, interaction: ChatInputCommandInteraction): Promise<void> => {
     const slashCommand = Commands.find(c => c.data.name === interaction.commandName);
     if (!slashCommand) {
+        logger.error(`Cannot find command with name ${interaction.commandName}`)
         interaction.followUp({ content: "An error has occurred" });
         return;
     }
 
-    await interaction.deferReply();
+    try {
+        await interaction.deferReply();
 
-    slashCommand.execute(interaction);
+        slashCommand.execute(interaction);
+    } catch (error) {
+        ErrorUtils.handleError(error, `An error occurred executing command ${interaction.commandName}`);
+        interaction.followUp({ content: "Oops something went wrong" });
+    }
 };

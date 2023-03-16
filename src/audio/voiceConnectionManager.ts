@@ -69,8 +69,6 @@ class VoiceConnectionHandler {
             this.playAudio(resource);
         });
 
-        console.log(this.connection.listeners("on"));
-
         logger.debug("Checking is already in ready state...");
         if (this.connection.state.status === VoiceConnectionStatus.Ready) {
             this.playAudio(resource);

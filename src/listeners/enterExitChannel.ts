@@ -18,6 +18,13 @@ export function enterExitChannelListener(client: Client): void {
         }
 
         const guildId = newState.guild.id;
+
+        if (!SettingsManager.get(guildId, settingsKeys.ENABLED)) {
+            logger.info("Skipping announcement, announcord is disabled");
+            return;
+        }
+
+
         const newChannel = await getChannel(newState);
         const oldChannel = await getChannel(oldState);
 
@@ -32,6 +39,7 @@ export function enterExitChannelListener(client: Client): void {
 
         const announcementManager = announcementManagers.get(guildId);
         if (!announcementManager) {
+            logger.error(`No announcement manager found for ${newState.guild.name} (${guildId})`)
             return;
         }
 
