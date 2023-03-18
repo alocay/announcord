@@ -7,4 +7,7 @@ export * from "./setVoice";
 export * from "./setEnterAlert";
 export * from "./setExitAlert";
 export * from "./disconnect";
+export * from "./sneak";
+export * from "./sneakingAllowed";
+
 

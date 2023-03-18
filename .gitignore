@@ -61,3 +61,4 @@ Thumbs.db
 node_modules
 data
 .vscode
+command_config.json

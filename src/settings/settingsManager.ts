@@ -54,6 +54,39 @@ export default class SettingsManager {
         SettingsManager.update(guildId, settingsKeys.USER_ALERTS, userAlerts);
     }
 
+    static toggleSneak(guildId: string | undefined, userId: string | undefined): boolean {
+        SettingsManager.assertId(userId, `Cannot get toggle sneak - No user ID given`);
+        SettingsManager.assertId(guildId, `Cannot get toggle sneak for user ${userId} - No guild ID given`);
+
+        const settings = BotSettings.settings.get(guildId);
+        const sneakSettings = settings.userSneak;
+        if (!sneakSettings[userId]) {
+            sneakSettings[userId] = true;
+        } else {
+            const currentSettings: boolean = sneakSettings[userId];
+            sneakSettings[userId] = !currentSettings;
+        }
+
+        SettingsManager.update(guildId, settingsKeys.USER_SNEAK, sneakSettings);
+        return sneakSettings[userId];
+    }
+
+    static toggleValue(guildId: string | undefined, key: string | undefined): boolean {
+        SettingsManager.assertId(key, `Cannot get toggle setting - No key given`);
+        SettingsManager.assertId(guildId, `Cannot get toggle setting ${key} - No guild ID given`);
+
+        const settings = BotSettings.settings.get(guildId);
+        const value = settings[key];
+        if (!value) {
+            settings[key] = true;
+        } else {
+            settings[key] = !settings[key];
+        }
+
+        BotSettings.settings.set(guildId, settings);
+        return settings[key];
+    }
+
     static get(guildId: string | undefined, key: string): any {
         SettingsManager.assertId(guildId, `Cannot get value for ${key} - No guild ID given`);
 

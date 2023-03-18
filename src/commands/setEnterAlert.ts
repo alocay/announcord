@@ -3,8 +3,9 @@ import ErrorUtils from "../errors/errorUtils";
 import { Command } from "../command";
 import settingsKeys from "../settings/settingsKeys";
 import SettingsManager from "../settings/settingsManager";
+import { UserAlerts } from "../interfaces/guildSettings";
+import Utils from "../utils";
 import loggerModule from "../logger";
-import { UserAlerts } from "src/interfaces/guildSettings";
 
 const logger = loggerModule(__filename);
 
@@ -52,6 +53,10 @@ function getCustomEnterAlertText(guildId: string, userId: string | undefined) {
 }
 
 function setEnterAlertAndGetConfirmationText(guildId: string, userId: string | undefined, format: string): string {
+    if (format.length > Utils.getMaxAnnouncementCharacters()) {
+        throw Error(`Announcement cannot be longer than ${Utils.getMaxAnnouncementCharacters()} characters`);
+    }
+
     SettingsManager.updateUserEnterAlert(guildId, userId, format);
     return `Enter announcement set to: \n \`${format}\``;
 }

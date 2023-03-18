@@ -5,9 +5,11 @@
         "languageCode": "en-US",
         "enterAlert": "%name has entered the channel",
         "exitAlert": "%name has left the channel",
-        "version": "0.0.5",
+        "version": "0.0.6",
+        "sneakingAllowed": true,
         "userVoices": {},
         "userAlerts": {},
+        "userSneak": {},
         "announcementChannelId": "",
         "enabled": true
     },

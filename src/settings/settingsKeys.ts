@@ -10,4 +10,6 @@ export default {
     USER_ALERTS: "userAlerts",
     ANNOUNCEMENT_CHANNEL_ID: "announcementChannelId",
     ENABLED: "enabled",
+    USER_SNEAK: "userSneak",
+    SNEAKING_ALLOWED: "sneakingAllowed",
 }

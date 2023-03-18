@@ -8,7 +8,10 @@ import {
     SetVoice,
     SetEnterAlert,
     SetExitAlert,
-    Disconnect } from "./commands";
+    Disconnect,
+    Sneak,
+    SneakingAllowed
+} from "./commands";
 
 export const Commands: Command[] = [
     Version,
@@ -19,5 +22,7 @@ export const Commands: Command[] = [
     SetVoice,
     SetEnterAlert,
     SetExitAlert,
-    Disconnect
+    Disconnect,
+    Sneak,
+    SneakingAllowed
 ];
