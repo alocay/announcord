@@ -1,7 +1,7 @@
 import BotSettings from "../settings/settings";
 import loggerModule from "../logger";
 import { Voice } from "@aws-sdk/client-polly";
-import { GuildSettings, UserAlerts, UserVoices } from "src/interfaces/guildSettings";
+import { GuildSettings, UserAlerts, UserSneak, UserVoices } from "src/interfaces/guildSettings";
 import settingsKeys from "./settingsKeys";
 import UserVoice from "../interfaces/userVoice";
 import UserAlert from "../interfaces/userAlert";
@@ -55,8 +55,8 @@ export default class SettingsManager {
     }
 
     static toggleSneak(guildId: string | undefined, userId: string | undefined): boolean {
-        SettingsManager.assertId(userId, `Cannot get toggle sneak - No user ID given`);
-        SettingsManager.assertId(guildId, `Cannot get toggle sneak for user ${userId} - No guild ID given`);
+        SettingsManager.assertId(userId, `Cannot toggle sneak - No user ID given`);
+        SettingsManager.assertId(guildId, `Cannot toggle sneak for user ${userId} - No guild ID given`);
 
         const settings = BotSettings.settings.get(guildId);
         const sneakSettings = settings.userSneak;
@@ -69,6 +69,19 @@ export default class SettingsManager {
 
         SettingsManager.update(guildId, settingsKeys.USER_SNEAK, sneakSettings);
         return sneakSettings[userId];
+    }
+
+    static disableAllUserSneaking(guildId: string | undefined): void {
+        SettingsManager.assertId(guildId, `Cannot disable all user sneaking - No guild ID given`);
+
+        const settings = BotSettings.settings.get(guildId);
+        const sneakSettings = settings.userSneak;
+
+        for (let userId of Object.keys(sneakSettings)) {
+            sneakSettings[userId] = false;
+        }
+
+        SettingsManager.update(guildId, settingsKeys.USER_SNEAK, sneakSettings);
     }
 
     static toggleValue(guildId: string | undefined, key: string | undefined): boolean {
@@ -95,24 +108,32 @@ export default class SettingsManager {
     }
 
     static getUserVoiceEngine(guildId: string | undefined, userId: string | undefined): string | undefined | null {
-        SettingsManager.assertId(guildId, `Cannot get user voice engine for ${userId} - No guild ID given`);
         SettingsManager.assertId(userId, "Cannot get user voice engine - no user ID given");
+        SettingsManager.assertId(guildId, `Cannot get user voice engine for ${userId} - No guild ID given`);
 
         const userVoices: UserVoices = SettingsManager.get(guildId, settingsKeys.USER_VOICES);
         return userVoices[userId]?.engine;
     }
 
     static getUserVoice(guildId: string | undefined, userId: string | undefined): UserVoice {
-        SettingsManager.assertId(guildId, `Cannot get user voice for ${userId} - No guild ID given`);
         SettingsManager.assertId(userId, "Cannot get user voice - no user ID given");
+        SettingsManager.assertId(guildId, `Cannot get user voice for ${userId} - No guild ID given`);
 
         const userVoices: UserVoices = SettingsManager.get(guildId, settingsKeys.USER_VOICES);
         return userVoices[userId];
     }
 
+    static getUserSneakSetting(guildId: string | undefined, userId: string | undefined): boolean | undefined {
+        SettingsManager.assertId(userId, "Cannot get sneak setting - no user ID given");
+        SettingsManager.assertId(guildId, `Cannot get sneak setting for ${userId} - No guild ID given`);
+
+        const userSneak: UserSneak = SettingsManager.get(guildId, settingsKeys.USER_SNEAK);
+        return userSneak[userId];
+    }
+
     static getUserAlert(guildId: string | undefined, userId: string | undefined): UserAlert | undefined {
-        SettingsManager.assertId(guildId, `Cannot get user enter alert for ${userId} - No guild ID given`);
         SettingsManager.assertId(userId, "Cannot get user enter alert - no user ID given");
+        SettingsManager.assertId(guildId, `Cannot get user enter alert for ${userId} - No guild ID given`);
 
         const userAlerts: UserAlerts = SettingsManager.get(guildId, settingsKeys.USER_ALERTS);
         return userId in userAlerts ? userAlerts[userId] : undefined;

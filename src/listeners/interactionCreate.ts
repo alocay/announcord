@@ -1,7 +1,7 @@
 import { Client, Interaction, Events, ChatInputCommandInteraction } from "discord.js";
-import loggerModule from "../logger";
 import { Commands } from "../botCommands";
-import ErrorUtils from "src/errors/errorUtils";
+import ErrorUtils from "../errors/errorUtils";
+import loggerModule from "../logger";
 
 const logger = loggerModule(__filename);
 

@@ -34,7 +34,11 @@ export const SneakingAllowed: Command = {
 };
 
 function toggleSneakingAllowed(guildId: string): string {
-    const newValue = SettingsManager.toggleValue(guildId, settingsKeys.SNEAKING_ALLOWED);
+    const isSneakingAllowed = SettingsManager.toggleValue(guildId, settingsKeys.SNEAKING_ALLOWED);
 
-    return newValue ? "Sneaking allowed" : "Sneaking not allowed";
+    if (!isSneakingAllowed) {
+        SettingsManager.disableAllUserSneaking(guildId);
+    }
+
+    return isSneakingAllowed ? "Sneaking allowed" : "Sneaking not allowed";
 }

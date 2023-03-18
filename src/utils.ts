@@ -9,6 +9,7 @@ export default class Utils {
     public static getMaxAnnouncementCharacters(): number {
         return 75;
     }
+    
     public static findMemberNameById(id: string, guild: Guild) {
         const mem = guild.members.cache.get(id);
 

@@ -2,6 +2,7 @@ import { ChatInputCommandInteraction, CommandInteraction, PermissionFlagsBits, S
 import { Command } from "../command";
 import SettingsManager from "../settings/settingsManager";
 import ErrorUtils from "../errors/errorUtils";
+import settingsKeys from "../settings/settingsKeys";
 import loggerModule from "../logger";
 
 const logger = loggerModule(__filename);
@@ -20,6 +21,16 @@ export const Sneak: Command = {
 
             if (!interaction.guildId) {
                 throw new Error("No guild ID in interaction");
+            }
+
+            const isSneakingAllowed = SettingsManager.get(interaction.guildId, settingsKeys.SNEAKING_ALLOWED);
+            if (!isSneakingAllowed) {
+                await interaction.followUp({
+                    ephemeral: true,
+                    content: "Sorry, sneaking is not allowed on this server"
+                });
+
+                return;
             }
 
             content = toggleSneak(interaction.guildId, interaction.user.id);

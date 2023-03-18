@@ -62,11 +62,13 @@ function getUserSettingsDisplay(guild: Guild | null, user: User): EmbedBuilder {
 
     const userAlert = SettingsManager.getUserAlert(guild?.id, user.id);
     const userVoice = SettingsManager.getUserVoice(guild?.id, user.id);
-    
+    const userSneak = SettingsManager.getUserSneakSetting(guild?.id, user.id);
+
     embed.addFields(
         { name: "Voice", value: userVoice?.voice || "None" },
         { name: "Enter Announcement", value: userAlert?.enterAlertFormat || "None" },
-        { name: "Exit Announcement", value: userAlert?.exitAlertFormat || "None" }
+        { name: "Exit Announcement", value: userAlert?.exitAlertFormat || "None" },
+        { name: "Sneaking", value: userSneak ? "Yes" : "No" }
     );
 
     return embed;
@@ -79,7 +81,9 @@ async function buildSettingsMessage(guild: Guild, settings: GuildSettings): Prom
 
     const anySettings = settings as any;
     for (const [key, val] of Object.entries(settings)) {
-        if (key === settingsKeys.USER_VOICES || key === settingsKeys.USER_ALERTS) {
+        if (key === settingsKeys.USER_VOICES
+            || key === settingsKeys.USER_ALERTS
+            || key === settingsKeys.USER_SNEAK) {
             continue;
         }
 
@@ -109,6 +113,8 @@ function getKeyText(key: string) {
             return "Member Custom Alerts";
         case settingsKeys.USER_VOICES:
             return "Member Custom Voices";
+        case settingsKeys.SNEAKING_ALLOWED:
+            return "Sneaking Allowed";
         default:
             return key;
 }
