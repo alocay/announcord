@@ -33,6 +33,11 @@ export function enterExitChannelListener(client: Client): void {
             return;
         }
 
+        if (newChannel?.id === oldChannel?.id) {
+            logger.debug("Same channel - user didn't enter or leave - ignoring");
+            return;
+        }
+
         if(!announcementManagers.has(guildId)) {
             announcementManagers.set(guildId, new AnnouncementManager(guildId));
         }
