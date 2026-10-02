@@ -34,7 +34,8 @@ export function renderText(template: string, name: string): string {
   return template.split(NAME_PLACEHOLDER).join(name);
 }
 
-function channelPermitted(rules: ReadonlyMap<string, ChannelRule>, channelId: string): boolean {
+/** Whether the guild's allow/deny rules let the bot speak in the channel. */
+export function channelPermitted(rules: ReadonlyMap<string, ChannelRule>, channelId: string): boolean {
   const anyAllow = [...rules.values()].includes('allow');
   const rule = rules.get(channelId);
   return anyAllow ? rule === 'allow' : rule !== 'deny';

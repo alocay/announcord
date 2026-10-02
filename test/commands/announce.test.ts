@@ -178,6 +178,32 @@ describe('/announce preview', () => {
     expect(result.reply).toMatch(/join a voice channel/i);
   });
 
+  it('does not speak in a denied channel, but still shows the text', async () => {
+    await h.deps.store.setRule('g1', 'c9', 'deny');
+
+    const result = await runAnnounce({ sub: 'preview' }, { ...caller, voiceChannelId: 'c9' }, h.deps);
+
+    expect(result.speak).toBeUndefined();
+    expect(result.reply).toContain('Mando has entered the channel');
+    expect(result.reply).toMatch(/announcements are off in this channel/i);
+  });
+
+  it('does not speak in a channel left out of the allow list', async () => {
+    await h.deps.store.setRule('g1', 'other', 'allow');
+
+    const result = await runAnnounce({ sub: 'preview' }, { ...caller, voiceChannelId: 'c9' }, h.deps);
+
+    expect(result.speak).toBeUndefined();
+  });
+
+  it('speaks in an allowed channel', async () => {
+    await h.deps.store.setRule('g1', 'c9', 'allow');
+
+    const result = await runAnnounce({ sub: 'preview' }, { ...caller, voiceChannelId: 'c9' }, h.deps);
+
+    expect(result.speak?.channelId).toBe('c9');
+  });
+
   it('does not speak where speech is not enabled, and says why', async () => {
     h.enabled.clear();
 

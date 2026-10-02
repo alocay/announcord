@@ -1,4 +1,4 @@
-import { resolveName } from '../announce/policy.js';
+import { channelPermitted, resolveName } from '../announce/policy.js';
 import { DEFAULTS } from '../domain.js';
 import type { Voice } from '../tts/provider.js';
 import {
@@ -111,6 +111,15 @@ export async function runAnnounce(
       }
       if (!caller.voiceChannelId) {
         return { reply: [...lines, 'Join a voice channel and run this again to hear it.'].join('\n') };
+      }
+      // Channel rules still apply: a denied channel is one people asked to keep quiet.
+      if (!channelPermitted(await deps.store.getRules(guildId), caller.voiceChannelId)) {
+        return {
+          reply: [
+            ...lines,
+            'Announcements are off in this channel, so the preview can’t play here.',
+          ].join('\n'),
+        };
       }
       return {
         reply: [...lines, 'Playing the join announcement in your channel.'].join('\n'),
