@@ -15,8 +15,10 @@ import { ClipCache } from './tts/clipCache.js';
 import { PollyProvider } from './tts/pollyProvider.js';
 import { TtsService } from './tts/ttsService.js';
 import { UsageMeter } from './tts/usageMeter.js';
+import { waitUntil } from './waitUntil.js';
 
 const MAX_WARNINGS = 10;
+const SHUTDOWN_LEAVE_TIMEOUT_MS = 3000;
 
 /** Voice channels the bot lacks permission to speak in. */
 function joinWarnings(guild: Guild): string[] {
@@ -91,6 +93,14 @@ async function main(): Promise<void> {
     stopping = true;
     log.info({ signal }, 'shutting down');
     registry.shutdownAll();
+    // Leaving voice is a queued gateway message. Closing the gateway straight
+    // away can drop it, leaving the bot in the channel until Discord times it
+    // out, so wait for Discord to confirm the bot has left.
+    const leftVoice = await waitUntil(
+      () => client.guilds.cache.every((guild) => !guild.members.me?.voice.channelId),
+      SHUTDOWN_LEAVE_TIMEOUT_MS,
+    );
+    if (!leftVoice) log.warn('voice channels not confirmed left before shutdown');
     await client.destroy();
     await db.destroy();
     process.exit(0);

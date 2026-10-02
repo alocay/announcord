@@ -14,11 +14,11 @@ import {
 import { ChannelType, PermissionFlagsBits, type Guild } from 'discord.js';
 import { SkipAnnouncement, type VoiceTransport } from '../announce/guildAnnouncer.js';
 import type { Logger } from '../logger.js';
+import { waitUntil } from '../waitUntil.js';
 
 const READY_TIMEOUT_MS = 10_000;
 const RECONNECT_GRACE_MS = 5_000;
 const PLAYBACK_TIMEOUT_MS = 30_000;
-const ARRIVAL_POLL_MS = 50;
 
 /** Returns why the bot cannot speak in the channel, or null if it can. */
 export function joinProblem(guild: Guild, channelId: string): string | null {
@@ -121,10 +121,9 @@ export class DiscordVoiceTransport implements VoiceTransport {
    * could start while the bot is still in the previous channel.
    */
   private async arrived(channelId: string): Promise<void> {
-    const deadline = Date.now() + READY_TIMEOUT_MS;
-    while (this.guild.members.me?.voice.channelId !== channelId) {
-      if (Date.now() > deadline) throw new Error('Timed out waiting to arrive in the channel');
-      await new Promise((resolve) => setTimeout(resolve, ARRIVAL_POLL_MS));
+    const inChannel = () => this.guild.members.me?.voice.channelId === channelId;
+    if (!(await waitUntil(inChannel, READY_TIMEOUT_MS))) {
+      throw new Error('Timed out waiting to arrive in the channel');
     }
   }
 

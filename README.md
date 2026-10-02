@@ -89,7 +89,9 @@ npm run build
 node --env-file=.env dist/index.js
 ```
 
-For development, `npm run dev` runs from source and restarts on changes.
+For development, `npm run dev` runs from source. It deliberately does not
+watch for changes: on Windows, `tsx watch` kills the bot outright on Ctrl+C,
+before it can leave its voice channel.
 
 With Docker:
 
