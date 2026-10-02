@@ -1,3 +1,5 @@
+import { resolveName } from '../announce/policy.js';
+import { DEFAULTS } from '../domain.js';
 import type { Voice } from '../tts/provider.js';
 import {
   clearOverrideField,
@@ -60,18 +62,34 @@ export async function runAnnounce(
     }
 
     case 'show': {
-      const [override, spoken] = await Promise.all([
+      const [settings, override, spoken] = await Promise.all([
+        deps.store.getGuild(guildId),
         deps.store.getOverride(guildId, userId),
         spokenFor(deps, guildId, userId, caller.names),
       ]);
-      const mine = (value: string | null | undefined) => value ?? '*server default*';
+      // Show the value actually in effect, and say where it comes from when
+      // it is not the member's own.
+      const effective = (own: string | null | undefined, fallback: string, source: string) =>
+        own ?? `${fallback} *(${source})*`;
       return {
         reply: [
           '**Your personal settings**',
-          `Voice: ${mine(override?.voiceId)}`,
-          `Enter message: ${mine(override?.enterTemplate)}`,
-          `Exit message: ${mine(override?.exitTemplate)}`,
-          `Pronunciation: ${mine(override?.pronunciation)}`,
+          `Voice: ${effective(override?.voiceId, settings.voiceId, 'server default')}`,
+          `Enter message: ${effective(
+            override?.enterTemplate,
+            settings.enterTemplate ?? DEFAULTS.enterTemplate,
+            'server default',
+          )}`,
+          `Exit message: ${effective(
+            override?.exitTemplate,
+            settings.exitTemplate ?? DEFAULTS.exitTemplate,
+            'server default',
+          )}`,
+          `Pronunciation: ${effective(
+            override?.pronunciation,
+            resolveName(caller.names, null),
+            'your display name',
+          )}`,
           '',
           `**What will be said** (voice: ${spoken.voiceId})`,
           `Joining: “${spoken.enter}”`,

@@ -124,6 +124,30 @@ describe('/announce show', () => {
     expect(result.reply).toContain('Joanna');
   });
 
+  it('shows the server value for each unset setting, marked as the server default', async () => {
+    await h.deps.store.updateGuild('g1', { exitTemplate: 'So long %name' });
+
+    const lines = (await runAnnounce({ sub: 'show' }, caller, h.deps)).reply.split('\n');
+
+    expect(lines).toContain('Voice: Matthew *(server default)*');
+    expect(lines).toContain('Enter message: %name has entered the channel *(server default)*');
+    expect(lines).toContain('Exit message: So long %name *(server default)*');
+    expect(lines).toContain('Pronunciation: Mando *(your display name)*');
+  });
+
+  it('shows personal values without the server-default mark', async () => {
+    await runAnnounce({ sub: 'voice', voice: 'Joanna' }, caller, h.deps);
+    await runAnnounce({ sub: 'enter', text: 'Here comes %name' }, caller, h.deps);
+    await runAnnounce({ sub: 'pronounce', text: 'Mondo' }, caller, h.deps);
+
+    const lines = (await runAnnounce({ sub: 'show' }, caller, h.deps)).reply.split('\n');
+
+    expect(lines).toContain('Voice: Joanna');
+    expect(lines).toContain('Enter message: Here comes %name');
+    expect(lines).toContain('Exit message: %name has left the channel *(server default)*');
+    expect(lines).toContain('Pronunciation: Mondo');
+  });
+
   it('uses the server template when the member has none', async () => {
     await h.deps.store.updateGuild('g1', { enterTemplate: 'Welcome %name' });
 
