@@ -14,6 +14,7 @@ import {
 import type { AnnouncerRegistry } from '../announce/announcerRegistry.js';
 import type { AnnounceStyle } from '../domain.js';
 import type { Logger } from '../logger.js';
+import type { Voice } from '../tts/provider.js';
 import { runAnnounce, type AnnounceRequest } from './announce.js';
 import { runAnnounceAdmin, type AdminRequest } from './announceAdmin.js';
 import type { Caller, CommandDeps, CommandResult, FieldChoice } from './shared.js';
@@ -211,6 +212,19 @@ async function handleResetButton(
   await interaction.update({ content: result.reply, components: [] });
 }
 
+/** The voice the member is announced with now: their own choice, else the server's. */
+async function currentVoiceId(
+  interaction: AutocompleteInteraction,
+  deps: DispatcherDeps,
+): Promise<string | null> {
+  if (!interaction.guildId) return null;
+  const [settings, override] = await Promise.all([
+    deps.store.getGuild(interaction.guildId),
+    deps.store.getOverride(interaction.guildId, interaction.user.id),
+  ]);
+  return override?.voiceId ?? settings.voiceId;
+}
+
 async function handleAutocomplete(
   interaction: AutocompleteInteraction,
   deps: DispatcherDeps,
@@ -218,6 +232,15 @@ async function handleAutocomplete(
   try {
     const typed = interaction.options.getFocused().trim().toLowerCase();
     const voices = await deps.tts.voices();
+
+    // Discord shows at most 25 choices, far fewer than there are voices, so
+    // put the likeliest first: names starting with what was typed, then
+    // voices in the language the member is currently announced in.
+    const current = await currentVoiceId(interaction, deps);
+    const language = voices.find((v) => v.id === current)?.languageCode;
+    const rank = (v: Voice) =>
+      (v.id.toLowerCase().startsWith(typed) ? 0 : 2) + (v.languageCode === language ? 0 : 1);
+
     const matches = voices
       .filter(
         (v) =>
@@ -225,11 +248,7 @@ async function handleAutocomplete(
           v.languageName.toLowerCase().includes(typed) ||
           v.languageCode.toLowerCase().startsWith(typed),
       )
-      // Names that start with what was typed are the likeliest intent.
-      .sort(
-        (a, b) =>
-          Number(b.id.toLowerCase().startsWith(typed)) - Number(a.id.toLowerCase().startsWith(typed)),
-      )
+      .sort((a, b) => rank(a) - rank(b) || a.id.localeCompare(b.id))
       .slice(0, MAX_AUTOCOMPLETE_CHOICES);
     await interaction.respond(
       matches.map((v) => ({ name: `${v.id} — ${v.languageName}`, value: v.id })),

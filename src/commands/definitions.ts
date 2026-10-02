@@ -20,8 +20,11 @@ const OVERRIDE_FIELDS = [
 ] as const;
 const EVERYTHING = { name: 'everything', value: 'all' } as const;
 
-const voiceOption = (description: string) => (option: SlashCommandStringOption) =>
-  option.setName('voice').setDescription(description).setRequired(true).setAutocomplete(true);
+// Autocomplete can only show 25 of the ~100 voices, so point at the full list.
+const VOICE_HINT = 'Type to search. /announce voices lists them all';
+
+const voiceOption = (option: SlashCommandStringOption) =>
+  option.setName('voice').setDescription(VOICE_HINT).setRequired(true).setAutocomplete(true);
 
 const textOption = (description: string) => (option: SlashCommandStringOption) =>
   option.setName('text').setDescription(description).setRequired(true).setMaxLength(MAX_INPUT);
@@ -47,7 +50,7 @@ const announce = new SlashCommandBuilder()
     sub
       .setName('voice')
       .setDescription('Choose the voice that announces you')
-      .addStringOption(voiceOption('Voice name')),
+      .addStringOption(voiceOption),
   )
   .addSubcommand((sub) =>
     sub
@@ -128,7 +131,7 @@ const announceAdmin = new SlashCommandBuilder()
     sub
       .setName('voice')
       .setDescription('Choose the default voice for this server')
-      .addStringOption(voiceOption('Voice name')),
+      .addStringOption(voiceOption),
   )
   .addSubcommand((sub) =>
     sub

@@ -108,6 +108,7 @@ function autocomplete(typed: string) {
     isRepliable: () => true,
     inCachedGuild: () => true,
     guildId: 'g1',
+    user: { id: 'u1' },
     options: { getFocused: () => typed },
     respond: async (choices: Array<{ name: string; value: string }>) => {
       responses.push(choices);
@@ -308,6 +309,39 @@ describe('handleInteraction: voice autocomplete', () => {
     await handleInteraction(interaction, deps);
 
     expect(responses[0]).toHaveLength(25);
+  });
+
+  describe('with more voices than Discord can show', () => {
+    beforeEach(() => {
+      // 30 French voices that sort before the English ones.
+      h.voices = [
+        ...Array.from({ length: 30 }, (_, i) => ({
+          id: `Aaa${String(i).padStart(2, '0')}`,
+          name: `Aaa${i}`,
+          languageCode: 'fr-FR',
+          languageName: 'French',
+        })),
+        ...h.voices,
+      ];
+    });
+
+    it('lists voices in the language of the member’s current voice first', async () => {
+      const { interaction, responses } = autocomplete('');
+
+      await handleInteraction(interaction, deps);
+
+      expect(responses[0]).toHaveLength(25);
+      expect(responses[0]?.slice(0, 2).map((c) => c.value)).toEqual(['Joanna', 'Matthew']);
+    });
+
+    it('follows the member’s own voice when they have chosen one', async () => {
+      await h.deps.store.setOverrideField('g1', 'u1', 'voiceId', 'Lucia', 'u1');
+      const { interaction, responses } = autocomplete('');
+
+      await handleInteraction(interaction, deps);
+
+      expect(responses[0]?.[0]?.value).toBe('Lucia');
+    });
   });
 
   it('answers with no choices rather than failing when voices cannot be loaded', async () => {
