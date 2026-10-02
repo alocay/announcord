@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AnnouncerRegistry } from '../../src/announce/announcerRegistry.js';
-import { GuildAnnouncer, type VoiceTransport } from '../../src/announce/guildAnnouncer.js';
+import {
+  GuildAnnouncer,
+  SkipAnnouncement,
+  type VoiceTransport,
+} from '../../src/announce/guildAnnouncer.js';
 import type { Announcement } from '../../src/domain.js';
 import { silentLogger } from '../../src/logger.js';
 
@@ -205,6 +209,34 @@ describe('GuildAnnouncer', () => {
     await vi.advanceTimersByTimeAsync(IDLE_MS);
 
     expect(transport.leaves).toBe(0);
+  });
+
+  it('warns about an unexpected failure but stays quiet about an expected skip', async () => {
+    const warnings: unknown[] = [];
+    const log = Object.assign(Object.create(silentLogger), {
+      warn: (...args: unknown[]) => warnings.push(args),
+    });
+    const failing: VoiceTransport = {
+      currentChannelId: () => null,
+      play: async (channelId) => {
+        throw channelId === 'locked' ? new SkipAnnouncement('no permission') : new Error('boom');
+      },
+      leave: () => {},
+    };
+    const quiet = new GuildAnnouncer({
+      transport: failing,
+      getClip: async () => Buffer.from('x'),
+      idleMs: IDLE_MS,
+      log,
+    });
+
+    quiet.enqueue({ ...announcement('a'), channelId: 'locked' });
+    await flush();
+    expect(warnings).toHaveLength(0);
+
+    quiet.enqueue({ ...announcement('b'), channelId: 'open' });
+    await flush();
+    expect(warnings).toHaveLength(1);
   });
 
   it('leaves the channel on shutdown', () => {

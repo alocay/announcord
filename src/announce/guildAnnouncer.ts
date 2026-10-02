@@ -12,6 +12,12 @@ export interface VoiceTransport {
   leave(): void;
 }
 
+/**
+ * Thrown by a transport for a skip that is expected and already reported
+ * (for example a channel the bot may not join), so it is not logged again.
+ */
+export class SkipAnnouncement extends Error {}
+
 export interface GuildAnnouncerDeps {
   transport: VoiceTransport;
   getClip(announcement: Announcement): Promise<Buffer>;
@@ -102,7 +108,8 @@ export class GuildAnnouncer {
         await this.transport.play(item.announcement.channelId, clip);
       } catch (error) {
         if (generation !== this.generation) return;
-        this.log.warn(
+        const level = error instanceof SkipAnnouncement ? 'debug' : 'warn';
+        this.log[level](
           { err: error, channelId: item.announcement.channelId },
           'announcement skipped',
         );
