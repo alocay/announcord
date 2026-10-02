@@ -36,21 +36,28 @@ const armando = member('u1', {
   user: { bot: false, username: 'alocay', globalName: 'Armando' },
 });
 const friend = member('u2');
+const other = member('u3');
 const musicBot = member('m1', { user: { bot: true, username: 'tunes', globalName: null } });
 
-/** Builds a guild whose channels hold the given members. */
-function guild(channels: Record<string, FakeMember[]>, botChannelId: string | null = null) {
+/**
+ * Builds a guild whose channels hold the given members. A bare string stands
+ * for a user in the channel whose member details Discord has not sent yet.
+ */
+function guild(
+  channels: Record<string, Array<FakeMember | string>>,
+  botChannelId: string | null = null,
+) {
+  const voiceStates = Object.entries(channels).flatMap(([channelId, members]) =>
+    members.map((m) =>
+      typeof m === 'string'
+        ? { id: m, channelId, member: null }
+        : { id: m.id, channelId, member: m },
+    ),
+  );
   return {
     id: 'g1',
     afkChannelId: 'afk',
-    channels: {
-      cache: new Map(
-        Object.entries(channels).map(([id, members]) => [
-          id,
-          { members: new Map(members.map((m) => [m.id, m])) },
-        ]),
-      ),
-    },
+    voiceStates: { cache: new Map(voiceStates.map((state) => [state.id, state])) },
     members: { me: { id: BOT_ID, voice: { channelId: botChannelId } } },
   };
 }
@@ -160,12 +167,29 @@ describe('handleVoiceStateUpdate', () => {
     expect(announcer.enqueued).toEqual([]);
   });
 
+  it('counts someone already in the channel whose member details are not cached yet', async () => {
+    // After a restart Discord lists who is in voice without their member data.
+    const g = guild({ a: [armando, 'u-uncached'] });
+
+    await handleVoiceStateUpdate(...states(armando, null, 'a', g), deps);
+
+    expect(announcer.enqueued).toHaveLength(1);
+  });
+
+  it('does not count the bot itself as an audience, even uncached', async () => {
+    const g = guild({ a: [armando, BOT_ID] });
+
+    await handleVoiceStateUpdate(...states(armando, null, 'a', g), deps);
+
+    expect(announcer.enqueued).toEqual([]);
+  });
+
   it('applies the guild settings, member override and channel rules from the store', async () => {
     await store.updateGuild('g1', { enterTemplate: 'Behold, %name' });
     await store.setOverrideField('g1', 'u1', 'pronunciation', 'Ar-mahn-doe', 'u1');
     await store.setOverrideField('g1', 'u1', 'voiceId', 'Joanna', 'u1');
     await store.setRule('g1', 'b', 'deny');
-    const g = guild({ a: [armando, friend], b: [armando, friend] });
+    const g = guild({ a: [friend], b: [other] });
 
     await handleVoiceStateUpdate(...states(armando, null, 'a', g), deps);
     await handleVoiceStateUpdate(...states(armando, null, 'b', g), deps);
@@ -176,7 +200,7 @@ describe('handleVoiceStateUpdate', () => {
   });
 
   it('announces the exit first on a move out of the channel the bot is sitting in', async () => {
-    const g = guild({ a: [friend], b: [armando, friend] }, 'a');
+    const g = guild({ a: [friend], b: [armando, other] }, 'a');
 
     await handleVoiceStateUpdate(...states(armando, 'a', 'b', g), deps);
 

@@ -18,6 +18,7 @@ import type { Logger } from '../logger.js';
 const READY_TIMEOUT_MS = 10_000;
 const RECONNECT_GRACE_MS = 5_000;
 const PLAYBACK_TIMEOUT_MS = 30_000;
+const ARRIVAL_POLL_MS = 50;
 
 /** Returns why the bot cannot speak in the channel, or null if it can. */
 export function joinProblem(guild: Guild, channelId: string): string | null {
@@ -107,9 +108,23 @@ export class DiscordVoiceTransport implements VoiceTransport {
 
     try {
       await entersState(connection, VoiceConnectionStatus.Ready, READY_TIMEOUT_MS);
+      await this.arrived(channelId);
     } catch (error) {
       this.drop(connection);
       throw new Error(`Could not connect to voice channel ${channelId}`, { cause: error });
+    }
+  }
+
+  /**
+   * Waits until Discord shows the bot in the channel. Moving an established
+   * connection keeps its status at Ready throughout, so without this a clip
+   * could start while the bot is still in the previous channel.
+   */
+  private async arrived(channelId: string): Promise<void> {
+    const deadline = Date.now() + READY_TIMEOUT_MS;
+    while (this.guild.members.me?.voice.channelId !== channelId) {
+      if (Date.now() > deadline) throw new Error('Timed out waiting to arrive in the channel');
+      await new Promise((resolve) => setTimeout(resolve, ARRIVAL_POLL_MS));
     }
   }
 

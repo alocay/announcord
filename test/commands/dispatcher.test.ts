@@ -197,6 +197,17 @@ describe('handleInteraction: slash commands', () => {
     expect(replies[0]?.content).toContain('Friend');
   });
 
+  it('shortens a reply that would exceed Discord’s 2000 character limit', async () => {
+    for (let i = 0; i < 150; i++) await h.deps.store.setRule('g1', `channel-number-${i}`, 'deny');
+    const { interaction, replies } = chat('announce-admin', { sub: 'settings' });
+
+    await handleInteraction(interaction, deps);
+
+    expect(replies).toHaveLength(1);
+    expect(replies[0]?.content?.length).toBeLessThanOrEqual(2000);
+    expect(replies[0]?.content).toContain('Announcement settings');
+  });
+
   it('shows channel names and permission warnings in settings', async () => {
     await h.deps.store.setRule('g1', 'c7', 'deny');
     deps.joinWarnings = () => ['lobby: missing Speak permission'];

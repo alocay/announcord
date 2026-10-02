@@ -31,6 +31,16 @@ const RESET_PREFIX = 'announce-reset';
 // Replies quote text that members typed; never let that ping anyone.
 const NO_MENTIONS = { parse: [] };
 
+const MAX_MESSAGE_LENGTH = 2000;
+
+/** Discord rejects longer messages outright, which would lose the whole reply. */
+function fitMessage(text: string): string {
+  const notice = '\n… (shortened)';
+  return text.length <= MAX_MESSAGE_LENGTH
+    ? text
+    : text.slice(0, MAX_MESSAGE_LENGTH - notice.length) + notice;
+}
+
 function callerOf(member: GuildMember, guildId: string): Caller {
   return {
     guildId,
@@ -172,7 +182,7 @@ async function handleCommand(
   }
 
   await interaction.reply({
-    content: result.reply,
+    content: fitMessage(result.reply),
     flags: MessageFlags.Ephemeral,
     allowedMentions: NO_MENTIONS,
   });

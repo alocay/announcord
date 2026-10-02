@@ -16,8 +16,10 @@ export interface MemberLike {
 export interface GuildLike {
   id: string;
   afkChannelId: string | null;
-  channels: {
-    cache: { get(id: string): { members: { values(): Iterable<MemberLike> } } | undefined };
+  voiceStates: {
+    cache: {
+      values(): Iterable<{ id: string; channelId: string | null; member: MemberLike | null }>;
+    };
   };
   members: { me: { id: string; voice: { channelId: string | null } } | null };
 }
@@ -56,12 +58,20 @@ export function toRawVoiceChange(
   };
 }
 
+/**
+ * Counts listeners from the guild's voice states rather than the channel's
+ * member list: after a restart Discord reports who is in voice without their
+ * member details, and discord.js leaves those people out of `channel.members`.
+ * Someone whose details are unknown is assumed to be a person.
+ */
 function otherHumansIn(guild: GuildLike, channelId: string, exceptUserId: string): number {
-  const channel = guild.channels.cache.get(channelId);
-  if (!channel) return 0;
+  const botId = guild.members.me?.id;
   let count = 0;
-  for (const member of channel.members.values()) {
-    if (!member.user.bot && member.id !== exceptUserId) count++;
+  for (const state of guild.voiceStates.cache.values()) {
+    if (state.channelId !== channelId) continue;
+    if (state.id === exceptUserId || state.id === botId) continue;
+    if (state.member?.user.bot) continue;
+    count++;
   }
   return count;
 }
