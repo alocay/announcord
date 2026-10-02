@@ -343,3 +343,30 @@ Dispatcher: maps the interaction to a request, re-checks `ManageGuild` for admin
 - **Placeholders:** none.
 - **Types:** `VoiceEvent.names` (array) is used consistently by router, policy and commands; `OverrideField` is shared by the store and both command modules; `VoiceTransport` is defined in T7 and implemented in T8.
 - **Review Focus:** each of the five items is pinned to a named test in T3, T5 or T7.
+
+---
+
+## Outcome (recorded after implementation)
+
+All 13 tasks completed on branch `v2`. 200 automated tests pass; lint, typecheck and build are clean. Not verified: real Discord voice playback, real Polly synthesis, and the Docker build (no Docker or credentials on the development machine). See the manual smoke checklist in the README.
+
+### Decisions made during implementation
+
+1. **TypeScript ~6.0, not 7.** typescript-eslint 8.71 supports `<6.1`.
+2. **Premium-only Polly voices are hidden.** Voices offering neither the neural nor the standard engine (long-form or generative only) cost 2–6x more and are left out of the voice list.
+3. **A bot moved by a user is not treated as a dropped connection** (spec §7 said it is). The voice library recovers in the new channel and the next announcement moves it where needed.
+4. **`guildDelete` during a Discord outage keeps settings.** Settings are deleted only when the guild is still available, meaning the bot was really removed.
+5. **Stage channels are refused.** Only ordinary voice channels are joined.
+6. **`SkipAnnouncement` error class** lets the transport warn once per unusable channel without the queue warning again each time.
+7. **Command requests use the slash-command field names** (`voice`, `enter`, `exit`, `pronounce`); shared validate-and-store code lives in `src/commands/shared.ts`.
+8. **No Manage Server re-check inside the bot** (spec §6 said there is one). The same section promises that owners can remap access to `/announce-admin` in Discord's Integrations settings; a hard re-check would break that. Discord enforces command permissions itself.
+9. **Reset confirmation buttons are bound to the member who asked.**
+10. **`GuildAnnouncer.getClip` closes over the settings store** to pass the guild voice as the fallback for a retired member voice.
+
+### Found in final review and fixed
+
+- Listeners are counted from guild voice states, not `channel.members`: discord.js omits people whose member data is not cached, which is everyone already in voice after a restart.
+- The voice transport waits for the bot's own voice state to show the target channel before playing; the library keeps a moved connection at `Ready` throughout the move.
+- Replies are capped at Discord's 2000-character limit.
+
+The final review was a self-review by the implementer, not an independent one.
