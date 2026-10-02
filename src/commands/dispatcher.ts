@@ -233,21 +233,25 @@ async function handleAutocomplete(
     const typed = interaction.options.getFocused().trim().toLowerCase();
     const voices = await deps.tts.voices();
 
+    // Narrow by name prefix as the member types. Only when no name starts
+    // with the text is it read as a language ("spanish", "en-GB").
+    const byName = voices.filter((v) => v.id.toLowerCase().startsWith(typed));
+    const candidates =
+      byName.length > 0
+        ? byName
+        : voices.filter(
+            (v) =>
+              v.languageName.toLowerCase().includes(typed) ||
+              v.languageCode.toLowerCase().startsWith(typed),
+          );
+
     // Discord shows at most 25 choices, far fewer than there are voices, so
-    // put the likeliest first: names starting with what was typed, then
-    // voices in the language the member is currently announced in.
+    // voices in the language the member is announced in now come first.
     const current = await currentVoiceId(interaction, deps);
     const language = voices.find((v) => v.id === current)?.languageCode;
-    const rank = (v: Voice) =>
-      (v.id.toLowerCase().startsWith(typed) ? 0 : 2) + (v.languageCode === language ? 0 : 1);
+    const rank = (v: Voice) => (v.languageCode === language ? 0 : 1);
 
-    const matches = voices
-      .filter(
-        (v) =>
-          v.id.toLowerCase().includes(typed) ||
-          v.languageName.toLowerCase().includes(typed) ||
-          v.languageCode.toLowerCase().startsWith(typed),
-      )
+    const matches = candidates
       .sort((a, b) => rank(a) - rank(b) || a.id.localeCompare(b.id))
       .slice(0, MAX_AUTOCOMPLETE_CHOICES);
     await interaction.respond(

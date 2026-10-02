@@ -311,6 +311,43 @@ describe('handleInteraction: voice autocomplete', () => {
     expect(responses[0]).toHaveLength(25);
   });
 
+  describe('narrowing as the member types', () => {
+    beforeEach(() => {
+      h.voices = [
+        ...h.voices,
+        { id: 'Amy', name: 'Amy', languageCode: 'en-GB', languageName: 'British English' },
+        { id: 'Joey', name: 'Joey', languageCode: 'en-US', languageName: 'US English' },
+        { id: 'Justin', name: 'Justin', languageCode: 'en-US', languageName: 'US English' },
+        { id: 'Mizuki', name: 'Mizuki', languageCode: 'ja-JP', languageName: 'Japanese' },
+      ];
+    });
+
+    const suggest = async (typed: string) => {
+      const { interaction, responses } = autocomplete(typed);
+      await handleInteraction(interaction, deps);
+      return responses[0]?.map((c) => c.value);
+    };
+
+    it('shows only voices whose name starts with what was typed', async () => {
+      expect(await suggest('J')).toEqual(['Joanna', 'Joey', 'Justin']);
+      expect(await suggest('Jo')).toEqual(['Joanna', 'Joey']);
+      expect(await suggest('Joa')).toEqual(['Joanna']);
+    });
+
+    it('does not match letters in the middle of a name', async () => {
+      expect(await suggest('a')).toEqual(['Amy']);
+    });
+
+    it('falls back to matching the language when no name starts with the text', async () => {
+      expect(await suggest('japan')).toEqual(['Mizuki']);
+      expect(await suggest('en-gb')).toEqual(['Amy']);
+    });
+
+    it('shows nothing when neither a name nor a language matches', async () => {
+      expect(await suggest('zzz')).toEqual([]);
+    });
+  });
+
   describe('with more voices than Discord can show', () => {
     beforeEach(() => {
       // 30 French voices that sort before the English ones.
