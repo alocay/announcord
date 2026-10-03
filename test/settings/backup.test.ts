@@ -39,10 +39,11 @@ describe('backupDatabase', () => {
     }
   });
 
-  it('refuses a source that does not exist', async () => {
-    await expect(
-      backupDatabase(join(dir, 'missing.sqlite'), join(dir, 'copy.sqlite')),
-    ).rejects.toThrow();
+  it('explains a missing source instead of a bare SQLite error', async () => {
+    const missing = join(dir, 'missing.sqlite');
+    await expect(backupDatabase(missing, join(dir, 'copy.sqlite'))).rejects.toThrow(
+      `No database at ${missing}. Has the bot run with this DATA_DIR yet?`,
+    );
   });
 });
 
