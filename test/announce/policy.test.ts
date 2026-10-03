@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   decideAnnouncements,
+  mutedReason,
   renderText,
   resolveName,
   type PolicyInput,
@@ -15,6 +16,7 @@ const settings: GuildSettings = {
   voiceId: 'Matthew',
   enterTemplate: null,
   exitTemplate: null,
+  sneakingAllowed: true,
 };
 
 const noOverride: MemberOverride = {
@@ -22,6 +24,8 @@ const noOverride: MemberOverride = {
   enterTemplate: null,
   exitTemplate: null,
   pronunciation: null,
+  sneak: false,
+  silenced: false,
 };
 
 function event(overrides: Partial<VoiceEvent>): VoiceEvent {
@@ -149,6 +153,44 @@ describe('decideAnnouncements', () => {
       expect(decideAnnouncements(input({ event: move, rules }))).toMatchObject([
         { channelId: 'b', kind: 'enter' },
       ]);
+    });
+  });
+
+  describe('sneak and silence', () => {
+    const sneaking = { ...noOverride, sneak: true };
+    const silenced = { ...noOverride, silenced: true };
+
+    it('never announces a silenced member, joining, leaving or moving', () => {
+      for (const e of [join, exit, move]) {
+        expect(decideAnnouncements(input({ event: e, override: silenced }))).toEqual([]);
+      }
+    });
+
+    it('keeps a member silenced even when sneaking is not allowed', () => {
+      const s = { ...settings, sneakingAllowed: false };
+      expect(decideAnnouncements(input({ settings: s, override: silenced }))).toEqual([]);
+    });
+
+    it('does not announce a sneaking member while sneaking is allowed', () => {
+      for (const e of [join, exit, move]) {
+        expect(decideAnnouncements(input({ event: e, override: sneaking }))).toEqual([]);
+      }
+    });
+
+    it('announces a sneaking member once the server disallows sneaking', () => {
+      const s = { ...settings, sneakingAllowed: false };
+      expect(decideAnnouncements(input({ settings: s, override: sneaking }))).toHaveLength(1);
+    });
+  });
+
+  describe('mutedReason', () => {
+    it('reports silence first, then sneak, then nothing', () => {
+      expect(mutedReason(settings, { ...noOverride, silenced: true, sneak: true })).toBe(
+        'silenced',
+      );
+      expect(mutedReason(settings, { ...noOverride, sneak: true })).toBe('sneaking');
+      expect(mutedReason({ ...settings, sneakingAllowed: false }, { ...noOverride, sneak: true })).toBeNull();
+      expect(mutedReason(settings, null)).toBeNull();
     });
   });
 

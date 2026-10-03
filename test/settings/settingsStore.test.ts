@@ -1,4 +1,6 @@
 import type { Kysely } from 'kysely';
+import { Migrator } from 'kysely/migration';
+import { migrations } from '../../src/settings/migrations.js';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { migrate, openDatabase, type Schema } from '../../src/settings/db.js';
 import { SettingsStore } from '../../src/settings/settingsStore.js';
@@ -33,6 +35,7 @@ describe('guild settings', () => {
       voiceId: 'Matthew',
       enterTemplate: null,
       exitTemplate: null,
+      sneakingAllowed: true,
     });
   });
 
@@ -77,6 +80,8 @@ describe('member overrides', () => {
       enterTemplate: null,
       exitTemplate: null,
       pronunciation: 'Ar-mahn-doe',
+      sneak: false,
+      silenced: false,
     });
   });
 
@@ -116,6 +121,106 @@ describe('member overrides', () => {
     await store.setOverrideField('g1', 'u1', 'voiceId', 'Joanna', 'u1');
 
     expect(await store.getOverride('g2', 'u1')).toBeNull();
+  });
+});
+
+describe('sneak and silence', () => {
+  it('allows sneaking by default and can disallow it', async () => {
+    expect((await store.getGuild('g1')).sneakingAllowed).toBe(true);
+
+    await store.updateGuild('g1', { sneakingAllowed: false });
+
+    expect((await store.getGuild('g1')).sneakingAllowed).toBe(false);
+  });
+
+  it('starts every member neither sneaking nor silenced', async () => {
+    await store.setOverrideField('g1', 'u1', 'voiceId', 'Joanna', 'u1');
+
+    expect(await store.getOverride('g1', 'u1')).toMatchObject({ sneak: false, silenced: false });
+  });
+
+  it('stores the sneak and silenced flags', async () => {
+    await store.setFlag('g1', 'u1', 'sneak', true, 'u1');
+    await store.setFlag('g1', 'u2', 'silenced', true, 'admin');
+
+    expect(await store.getOverride('g1', 'u1')).toMatchObject({ sneak: true, silenced: false });
+    expect(await store.getOverride('g1', 'u2')).toMatchObject({ sneak: false, silenced: true });
+  });
+
+  it('removes the row once a flag is turned off and nothing else is set', async () => {
+    await store.setFlag('g1', 'u1', 'sneak', true, 'u1');
+    await store.setFlag('g1', 'u1', 'sneak', false, 'u1');
+
+    expect(await store.getOverride('g1', 'u1')).toBeNull();
+  });
+
+  it('keeps a member whose only setting is a flag', async () => {
+    await store.setFlag('g1', 'u1', 'silenced', true, 'admin');
+    await store.setOverrideField('g1', 'u1', 'voiceId', 'Joanna', 'u1');
+    await store.setOverrideField('g1', 'u1', 'voiceId', null, 'u1');
+
+    expect(await store.getOverride('g1', 'u1')).toMatchObject({ silenced: true });
+  });
+
+  it('clearing a member removes their own settings and sneak but never a silence', async () => {
+    await store.setOverrideField('g1', 'u1', 'voiceId', 'Joanna', 'u1');
+    await store.setFlag('g1', 'u1', 'sneak', true, 'u1');
+    await store.setFlag('g1', 'u1', 'silenced', true, 'admin');
+
+    expect(await store.clearOverride('g1', 'u1')).toBe(true);
+
+    expect(await store.getOverride('g1', 'u1')).toEqual({
+      voiceId: null,
+      enterTemplate: null,
+      exitTemplate: null,
+      pronunciation: null,
+      sneak: false,
+      silenced: true,
+    });
+    expect(await store.clearOverride('g1', 'u1')).toBe(false);
+  });
+
+  it('lists the silenced members of a guild', async () => {
+    await store.setFlag('g1', 'u1', 'silenced', true, 'admin');
+    await store.setFlag('g1', 'u2', 'sneak', true, 'u2');
+    await store.setFlag('g1', 'u3', 'silenced', true, 'admin');
+    await store.setFlag('g2', 'u4', 'silenced', true, 'admin');
+
+    expect(await store.getSilenced('g1')).toEqual(['u1', 'u3']);
+  });
+
+  it('upgrades a database created before sneak and silence existed', async () => {
+    const old = openDatabase(':memory:');
+    await new Migrator({
+      db: old,
+      provider: { getMigrations: async () => ({ '0001_initial': migrations['0001_initial']! }) },
+    }).migrateToLatest();
+    const now = new Date().toISOString();
+    await old
+      .insertInto('guilds')
+      .values({ guild_id: 'g1', style: 'exit', created_at: now, updated_at: now } as never)
+      .execute();
+    await old
+      .insertInto('member_overrides')
+      .values({
+        guild_id: 'g1',
+        user_id: 'u1',
+        voice_id: 'Joanna',
+        updated_at: now,
+        updated_by: 'u1',
+      } as never)
+      .execute();
+
+    await migrate(old);
+    const upgraded = new SettingsStore(old);
+
+    expect(await upgraded.getGuild('g1')).toMatchObject({ style: 'exit', sneakingAllowed: true });
+    expect(await upgraded.getOverride('g1', 'u1')).toMatchObject({
+      voiceId: 'Joanna',
+      sneak: false,
+      silenced: false,
+    });
+    await old.destroy();
   });
 });
 

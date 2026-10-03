@@ -198,6 +198,36 @@ describe('handleInteraction: slash commands', () => {
     expect(replies[0]?.content).toContain('Friend');
   });
 
+  it('routes /announce sneak with its on/off value', async () => {
+    const { interaction } = chat('announce', { sub: 'sneak', values: { enabled: true } });
+
+    await handleInteraction(interaction, deps);
+
+    expect((await h.deps.store.getOverride('g1', 'u1'))?.sneak).toBe(true);
+  });
+
+  it('routes /announce-admin sneaking', async () => {
+    const { interaction } = chat('announce-admin', { sub: 'sneaking', values: { enabled: false } });
+
+    await handleInteraction(interaction, deps);
+
+    expect((await h.deps.store.getGuild('g1')).sneakingAllowed).toBe(false);
+  });
+
+  it('routes /announce-admin user silence to the chosen member', async () => {
+    const { interaction, replies } = chat('announce-admin', {
+      group: 'user',
+      sub: 'silence',
+      userId: 'admin1',
+      values: { member: fakeMember('u2', 'Friend'), enabled: true },
+    });
+
+    await handleInteraction(interaction, deps);
+
+    expect((await h.deps.store.getOverride('g1', 'u2'))?.silenced).toBe(true);
+    expect(replies[0]?.content).toContain('Friend');
+  });
+
   it('shortens a reply that would exceed Discord’s 2000 character limit', async () => {
     for (let i = 0; i < 150; i++) await h.deps.store.setRule('g1', `channel-number-${i}`, 'deny');
     const { interaction, replies } = chat('announce-admin', { sub: 'settings' });

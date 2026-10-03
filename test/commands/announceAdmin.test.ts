@@ -66,6 +66,46 @@ describe('/announce-admin guild settings', () => {
   });
 });
 
+describe('/announce-admin sneaking', () => {
+  it('disallows and allows sneaking for the server', async () => {
+    await run({ sub: 'sneaking', enabled: false });
+    expect((await guild()).sneakingAllowed).toBe(false);
+
+    await run({ sub: 'sneaking', enabled: true });
+    expect((await guild()).sneakingAllowed).toBe(true);
+  });
+});
+
+describe('/announce-admin user silence', () => {
+  const target = { targetId: 'u2', targetName: 'Friend' };
+
+  it('silences a member, recording the admin as the author', async () => {
+    const result = await run({ sub: 'user-silence', ...target, enabled: true });
+
+    expect((await h.deps.store.getOverride('g1', 'u2'))?.silenced).toBe(true);
+    const row = await h.db.selectFrom('member_overrides').select('updated_by').executeTakeFirst();
+    expect(row?.updated_by).toBe('admin1');
+    expect(result.reply).toContain('Friend');
+  });
+
+  it('lifts a silence', async () => {
+    await run({ sub: 'user-silence', ...target, enabled: true });
+
+    await run({ sub: 'user-silence', ...target, enabled: false });
+
+    expect(await h.deps.store.getOverride('g1', 'u2')).toBeNull();
+  });
+
+  it('keeps the member’s own settings when silencing and unsilencing', async () => {
+    await h.deps.store.setOverrideField('g1', 'u2', 'voiceId', 'Joanna', 'u2');
+
+    await run({ sub: 'user-silence', ...target, enabled: true });
+    await run({ sub: 'user-silence', ...target, enabled: false });
+
+    expect((await h.deps.store.getOverride('g1', 'u2'))?.voiceId).toBe('Joanna');
+  });
+});
+
 describe('/announce-admin channel', () => {
   const channel = { channelId: 'c1', channelName: 'General' };
 
@@ -157,6 +197,20 @@ describe('/announce-admin settings', () => {
     expect(reply).toContain('#c7');
     expect(reply).toContain('1,234');
     expect(reply).toMatch(/speech: enabled/i);
+  });
+
+  it('shows whether members may sneak and who is silenced', async () => {
+    const before = (await run(settingsRequest())).reply.split('\n');
+    expect(before).toContain('Members may sneak: yes');
+    expect(before).toContain('Silenced members: none');
+
+    await run({ sub: 'sneaking', enabled: false });
+    await run({ sub: 'user-silence', targetId: 'u2', targetName: 'F', enabled: true });
+    await run({ sub: 'user-silence', targetId: 'u3', targetName: 'G', enabled: true });
+    const after = (await run(settingsRequest())).reply.split('\n');
+
+    expect(after).toContain('Members may sneak: no');
+    expect(after).toContain('Silenced members: <@u2>, <@u3>');
   });
 
   it('says when speech is not enabled for the server', async () => {

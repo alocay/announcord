@@ -4,6 +4,7 @@ import {
   PermissionFlagsBits,
   SlashCommandBuilder,
   type RESTPostAPIChatInputApplicationCommandsJSONBody,
+  type SlashCommandBooleanOption,
   type SlashCommandStringOption,
   type SlashCommandSubcommandBuilder,
 } from 'discord.js';
@@ -25,6 +26,9 @@ const VOICE_HINT = 'Type to search. /announce voices lists them all';
 
 const voiceOption = (option: SlashCommandStringOption) =>
   option.setName('voice').setDescription(VOICE_HINT).setRequired(true).setAutocomplete(true);
+
+const enabledOption = (description: string) => (option: SlashCommandBooleanOption) =>
+  option.setName('enabled').setDescription(description).setRequired(true);
 
 const textOption = (description: string) => (option: SlashCommandStringOption) =>
   option.setName('text').setDescription(description).setRequired(true).setMaxLength(MAX_INPUT);
@@ -69,6 +73,12 @@ const announce = new SlashCommandBuilder()
       .setName('pronounce')
       .setDescription('Set how your name is spoken')
       .addStringOption(textOption('Your name, spelled the way it sounds')),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('sneak')
+      .setDescription('Join and leave without being announced')
+      .addBooleanOption(enabledOption('True to sneak, False to be announced again')),
   )
   .addSubcommand((sub) =>
     sub
@@ -123,9 +133,13 @@ const announceAdmin = new SlashCommandBuilder()
     sub
       .setName('ignore-empty')
       .setDescription('Skip announcements when nobody else is in the channel')
-      .addBooleanOption((option) =>
-        option.setName('enabled').setDescription('On or off').setRequired(true),
-      ),
+      .addBooleanOption(enabledOption('On or off')),
+  )
+  .addSubcommand((sub) =>
+    sub
+      .setName('sneaking')
+      .setDescription('Allow members to hide their own joins and leaves')
+      .addBooleanOption(enabledOption('True to allow sneaking, False to announce everyone')),
   )
   .addSubcommand((sub) =>
     sub
@@ -194,6 +208,15 @@ const announceAdmin = new SlashCommandBuilder()
               .setRequired(true)
               .addChoices(...OVERRIDE_FIELDS, EVERYTHING),
           ),
+      )
+      .addSubcommand((sub) =>
+        sub
+          .setName('silence')
+          .setDescription('Stop announcing a member. They cannot undo it')
+          .addUserOption((option) =>
+            option.setName('member').setDescription('The member').setRequired(true),
+          )
+          .addBooleanOption(enabledOption('True to silence, False to lift it')),
       ),
   )
   .addSubcommand((sub) =>

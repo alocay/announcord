@@ -7,15 +7,30 @@ import type {
 } from '../domain.js';
 import type { GuildsTable, MemberOverridesTable, Schema } from './db.js';
 
-export type OverrideField = keyof MemberOverride;
+/** The text settings a member can override. */
+export type OverrideField = 'voiceId' | 'enterTemplate' | 'exitTemplate' | 'pronunciation';
+export type OverrideFlag = 'sneak' | 'silenced';
 export type GuildPatch = Partial<Omit<GuildSettings, 'guildId'>>;
 
-const OVERRIDE_COLUMNS = {
-  voiceId: 'voice_id',
-  enterTemplate: 'enter_template',
-  exitTemplate: 'exit_template',
-  pronunciation: 'pronunciation',
-} as const satisfies Record<OverrideField, keyof MemberOverridesTable>;
+const EMPTY_OVERRIDE: MemberOverride = {
+  voiceId: null,
+  enterTemplate: null,
+  exitTemplate: null,
+  pronunciation: null,
+  sneak: false,
+  silenced: false,
+};
+
+function isEmpty(override: MemberOverride): boolean {
+  return (
+    override.voiceId === null &&
+    override.enterTemplate === null &&
+    override.exitTemplate === null &&
+    override.pronunciation === null &&
+    !override.sneak &&
+    !override.silenced
+  );
+}
 
 function toSettings(row: GuildsTable): GuildSettings {
   return {
@@ -26,6 +41,7 @@ function toSettings(row: GuildsTable): GuildSettings {
     voiceId: row.voice_id,
     enterTemplate: row.enter_template,
     exitTemplate: row.exit_template,
+    sneakingAllowed: row.sneaking_allowed !== 0,
   };
 }
 
@@ -35,6 +51,8 @@ function toOverride(row: MemberOverridesTable): MemberOverride {
     enterTemplate: row.enter_template,
     exitTemplate: row.exit_template,
     pronunciation: row.pronunciation,
+    sneak: row.sneak !== 0,
+    silenced: row.silenced !== 0,
   };
 }
 
@@ -80,6 +98,9 @@ export class SettingsStore {
     if (patch.voiceId !== undefined) columns.voice_id = patch.voiceId;
     if (patch.enterTemplate !== undefined) columns.enter_template = patch.enterTemplate;
     if (patch.exitTemplate !== undefined) columns.exit_template = patch.exitTemplate;
+    if (patch.sneakingAllowed !== undefined) {
+      columns.sneaking_allowed = patch.sneakingAllowed ? 1 : 0;
+    }
 
     await this.db.updateTable('guilds').set(columns).where('guild_id', '=', guildId).execute();
     this.guilds.delete(guildId);
@@ -122,50 +143,102 @@ export class SettingsStore {
     value: string | null,
     updatedBy: string,
   ): Promise<void> {
-    const current = await this.getOverride(guildId, userId);
-    if (!current && value === null) return;
+    await this.changeOverride(guildId, userId, { [field]: value }, updatedBy);
+  }
 
-    const next: MemberOverride = {
-      ...(current ?? { voiceId: null, enterTemplate: null, exitTemplate: null, pronunciation: null }),
-      [field]: value,
-    };
-    if (Object.values(next).every((v) => v === null)) {
-      await this.clearOverride(guildId, userId);
+  async setFlag(
+    guildId: string,
+    userId: string,
+    flag: OverrideFlag,
+    value: boolean,
+    updatedBy: string,
+  ): Promise<void> {
+    await this.changeOverride(guildId, userId, { [flag]: value }, updatedBy);
+  }
+
+  /**
+   * Removes everything a member set for themselves, including sneak. An
+   * admin's silence is kept: only the silence command lifts it. Returns false
+   * when there was nothing to remove.
+   */
+  async clearOverride(guildId: string, userId: string): Promise<boolean> {
+    const current = await this.getOverride(guildId, userId);
+    if (!current) return false;
+
+    const cleared: MemberOverride = { ...EMPTY_OVERRIDE, silenced: current.silenced };
+    if (isEmpty({ ...current, silenced: false })) return false;
+    await this.writeOverride(guildId, userId, cleared, null);
+    return true;
+  }
+
+  /** User ids of the guild's silenced members. */
+  async getSilenced(guildId: string): Promise<string[]> {
+    const rows = await this.db
+      .selectFrom('member_overrides')
+      .select('user_id')
+      .where('guild_id', '=', guildId)
+      .where('silenced', '=', 1)
+      .orderBy('user_id')
+      .execute();
+    return rows.map((r) => r.user_id);
+  }
+
+  private async changeOverride(
+    guildId: string,
+    userId: string,
+    change: Partial<MemberOverride>,
+    updatedBy: string,
+  ): Promise<void> {
+    const current = await this.getOverride(guildId, userId);
+    await this.writeOverride(guildId, userId, { ...(current ?? EMPTY_OVERRIDE), ...change }, updatedBy);
+  }
+
+  /**
+   * Stores the member's complete override, or deletes the row when nothing is
+   * left in it. `updatedBy` null keeps the previous author (used by clearing).
+   */
+  private async writeOverride(
+    guildId: string,
+    userId: string,
+    next: MemberOverride,
+    updatedBy: string | null,
+  ): Promise<void> {
+    this.overrides.get(guildId)?.delete(userId);
+
+    if (isEmpty(next)) {
+      await this.db
+        .deleteFrom('member_overrides')
+        .where('guild_id', '=', guildId)
+        .where('user_id', '=', userId)
+        .execute();
       return;
     }
 
     await this.getGuild(guildId);
-    const column = OVERRIDE_COLUMNS[field];
     const updated_at = new Date().toISOString();
+    const columns = {
+      voice_id: next.voiceId,
+      enter_template: next.enterTemplate,
+      exit_template: next.exitTemplate,
+      pronunciation: next.pronunciation,
+      sneak: next.sneak ? 1 : 0,
+      silenced: next.silenced ? 1 : 0,
+      updated_at,
+    };
     await this.db
       .insertInto('member_overrides')
       .values({
         guild_id: guildId,
         user_id: userId,
-        voice_id: next.voiceId,
-        enter_template: next.enterTemplate,
-        exit_template: next.exitTemplate,
-        pronunciation: next.pronunciation,
-        updated_at,
-        updated_by: updatedBy,
+        ...columns,
+        updated_by: updatedBy ?? userId,
       })
       .onConflict((oc) =>
         oc
           .columns(['guild_id', 'user_id'])
-          .doUpdateSet({ [column]: value, updated_at, updated_by: updatedBy }),
+          .doUpdateSet(updatedBy ? { ...columns, updated_by: updatedBy } : columns),
       )
       .execute();
-    this.overrides.get(guildId)?.delete(userId);
-  }
-
-  async clearOverride(guildId: string, userId: string): Promise<boolean> {
-    const result = await this.db
-      .deleteFrom('member_overrides')
-      .where('guild_id', '=', guildId)
-      .where('user_id', '=', userId)
-      .executeTakeFirst();
-    this.overrides.get(guildId)?.delete(userId);
-    return result.numDeletedRows > 0n;
   }
 
   async getRules(guildId: string): Promise<ReadonlyMap<string, ChannelRule>> {

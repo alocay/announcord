@@ -199,6 +199,15 @@ describe('handleVoiceStateUpdate', () => {
     ]);
   });
 
+  it('does not announce a member an admin has silenced', async () => {
+    await store.setFlag('g1', 'u1', 'silenced', true, 'admin');
+    const g = guild({ a: [armando, friend] });
+
+    await handleVoiceStateUpdate(...states(armando, null, 'a', g), deps);
+
+    expect(announcer.enqueued).toEqual([]);
+  });
+
   it('announces the exit first on a move out of the channel the bot is sitting in', async () => {
     const g = guild({ a: [friend], b: [armando, other] }, 'a');
 

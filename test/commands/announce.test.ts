@@ -77,6 +77,44 @@ describe('/announce enter, exit and pronounce', () => {
   });
 });
 
+describe('/announce sneak', () => {
+  it('turns sneaking on and off', async () => {
+    const on = await runAnnounce({ sub: 'sneak', enabled: true }, caller, h.deps);
+    expect((await override())?.sneak).toBe(true);
+    expect(on.reply).toMatch(/won.t be announced/i);
+
+    const off = await runAnnounce({ sub: 'sneak', enabled: false }, caller, h.deps);
+    expect(await override()).toBeNull();
+    expect(off.reply).toMatch(/announced again/i);
+  });
+
+  it('refuses to start sneaking when the server does not allow it', async () => {
+    await h.deps.store.updateGuild('g1', { sneakingAllowed: false });
+
+    const result = await runAnnounce({ sub: 'sneak', enabled: true }, caller, h.deps);
+
+    expect(await override()).toBeNull();
+    expect(result.reply).toMatch(/not allowed/i);
+  });
+
+  it('always lets a member stop sneaking', async () => {
+    await runAnnounce({ sub: 'sneak', enabled: true }, caller, h.deps);
+    await h.deps.store.updateGuild('g1', { sneakingAllowed: false });
+
+    await runAnnounce({ sub: 'sneak', enabled: false }, caller, h.deps);
+
+    expect(await override()).toBeNull();
+  });
+
+  it('cannot lift an admin silence by clearing settings', async () => {
+    await h.deps.store.setFlag('g1', 'u1', 'silenced', true, 'admin');
+
+    await runAnnounce({ sub: 'clear', field: 'all' }, caller, h.deps);
+
+    expect((await override())?.silenced).toBe(true);
+  });
+});
+
 describe('/announce clear', () => {
   beforeEach(async () => {
     await runAnnounce({ sub: 'voice', voice: 'Joanna' }, caller, h.deps);
@@ -148,6 +186,32 @@ describe('/announce show', () => {
     expect(lines).toContain('Pronunciation: Mondo');
   });
 
+  it('shows whether the member is sneaking', async () => {
+    const before = (await runAnnounce({ sub: 'show' }, caller, h.deps)).reply.split('\n');
+    expect(before).toContain('Sneaking: off');
+
+    await runAnnounce({ sub: 'sneak', enabled: true }, caller, h.deps);
+    const after = (await runAnnounce({ sub: 'show' }, caller, h.deps)).reply.split('\n');
+    expect(after).toContain('Sneaking: on');
+  });
+
+  it('notes when a sneak is ignored because the server disallows sneaking', async () => {
+    await runAnnounce({ sub: 'sneak', enabled: true }, caller, h.deps);
+    await h.deps.store.updateGuild('g1', { sneakingAllowed: false });
+
+    const { reply } = await runAnnounce({ sub: 'show' }, caller, h.deps);
+
+    expect(reply).toMatch(/Sneaking: on .*not allowed on this server/);
+  });
+
+  it('tells a silenced member they will not be announced', async () => {
+    await h.deps.store.setFlag('g1', 'u1', 'silenced', true, 'admin');
+
+    const { reply } = await runAnnounce({ sub: 'show' }, caller, h.deps);
+
+    expect(reply).toMatch(/silenced by an admin/i);
+  });
+
   it('uses the server template when the member has none', async () => {
     await h.deps.store.updateGuild('g1', { enterTemplate: 'Welcome %name' });
 
@@ -202,6 +266,26 @@ describe('/announce preview', () => {
     const result = await runAnnounce({ sub: 'preview' }, { ...caller, voiceChannelId: 'c9' }, h.deps);
 
     expect(result.speak?.channelId).toBe('c9');
+  });
+
+  it('does not speak for a silenced member, and says why', async () => {
+    await h.deps.store.setFlag('g1', 'u1', 'silenced', true, 'admin');
+
+    const result = await runAnnounce({ sub: 'preview' }, { ...caller, voiceChannelId: 'c9' }, h.deps);
+
+    expect(result.speak).toBeUndefined();
+    expect(result.reply).toContain('Mando has entered the channel');
+    expect(result.reply).toMatch(/silenced by an admin/i);
+  });
+
+  it('does not speak for a sneaking member, and says how to stop', async () => {
+    await runAnnounce({ sub: 'sneak', enabled: true }, caller, h.deps);
+
+    const result = await runAnnounce({ sub: 'preview' }, { ...caller, voiceChannelId: 'c9' }, h.deps);
+
+    expect(result.speak).toBeUndefined();
+    expect(result.reply).toMatch(/sneaking/i);
+    expect(result.reply).toContain('/announce sneak');
   });
 
   it('does not speak where speech is not enabled, and says why', async () => {

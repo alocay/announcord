@@ -58,4 +58,23 @@ export const migrations: Record<string, Migration> = {
         .execute();
     },
   },
+
+  '0002_sneak_and_silence': {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async up(db: Kysely<any>) {
+      // One column per statement: SQLite cannot add several in one ALTER.
+      await db.schema
+        .alterTable('guilds')
+        .addColumn('sneaking_allowed', 'integer', (c) => c.notNull().defaultTo(1))
+        .execute();
+      await db.schema
+        .alterTable('member_overrides')
+        .addColumn('sneak', 'integer', (c) => c.notNull().defaultTo(0))
+        .execute();
+      await db.schema
+        .alterTable('member_overrides')
+        .addColumn('silenced', 'integer', (c) => c.notNull().defaultTo(0))
+        .execute();
+    },
+  },
 };

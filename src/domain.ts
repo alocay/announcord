@@ -10,6 +10,8 @@ export interface GuildSettings {
   /** null means the built-in default text. */
   enterTemplate: string | null;
   exitTemplate: string | null;
+  /** Whether members may hide themselves with /announce sneak. */
+  sneakingAllowed: boolean;
 }
 
 export interface MemberOverride {
@@ -17,6 +19,10 @@ export interface MemberOverride {
   enterTemplate: string | null;
   exitTemplate: string | null;
   pronunciation: string | null;
+  /** The member chose not to be announced; honoured only while sneaking is allowed. */
+  sneak: boolean;
+  /** An admin turned this member's announcements off; the member cannot undo it. */
+  silenced: boolean;
 }
 
 export interface VoiceEvent {
@@ -44,4 +50,5 @@ export const DEFAULTS = {
   voiceId: 'Matthew',
   enterTemplate: '%name has entered the channel',
   exitTemplate: '%name has left the channel',
+  sneakingAllowed: true,
 } as const satisfies Omit<GuildSettings, 'guildId'>;

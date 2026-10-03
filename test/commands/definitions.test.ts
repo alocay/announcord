@@ -66,6 +66,7 @@ describe('commandDefinitions', () => {
       'enter',
       'exit',
       'pronounce',
+      'sneak',
       'clear',
       'show',
       'preview',
@@ -77,6 +78,7 @@ describe('commandDefinitions', () => {
     expect(command('announce-admin').options.map((o) => o.name)).toEqual([
       'style',
       'ignore-empty',
+      'sneaking',
       'voice',
       'template',
       'channel',
@@ -89,7 +91,25 @@ describe('commandDefinitions', () => {
       'deny',
       'unlist',
     ]);
-    expect(sub('announce-admin', 'user').options?.map((o) => o.name)).toEqual(['set', 'clear']);
+    expect(sub('announce-admin', 'user').options?.map((o) => o.name)).toEqual([
+      'set',
+      'clear',
+      'silence',
+    ]);
+  });
+
+  it('takes a required on/off for sneak, sneaking and silence', () => {
+    for (const s of [
+      sub('announce', 'sneak'),
+      sub('announce-admin', 'sneaking'),
+      sub('announce-admin', 'user silence'),
+    ]) {
+      expect(option(s, 'enabled')).toMatchObject({ type: OptionType.Boolean, required: true });
+    }
+    expect(option(sub('announce-admin', 'user silence'), 'member')).toMatchObject({
+      type: OptionType.User,
+      required: true,
+    });
   });
 
   it('offers autocomplete on every voice option', () => {

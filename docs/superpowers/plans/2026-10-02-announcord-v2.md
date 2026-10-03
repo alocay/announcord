@@ -370,3 +370,15 @@ All 13 tasks completed on branch `v2`. 200 automated tests pass; lint, typecheck
 - Replies are capped at Discord's 2000-character limit.
 
 The final review was a self-review by the implementer, not an independent one.
+
+### Added after the first smoke test
+
+Ported from the March 2023 version (tag `v1.5-2023`) and extended, as a bounded change approved in conversation:
+
+- `/announce sneak <True|False>`: a member hides their own joins and leaves.
+- `/announce-admin sneaking <True|False>`: whether members may sneak. Allowed by default. Turning it off ignores existing sneaks without deleting them.
+- `/announce-admin user silence <member> <True|False>`: an admin stops a member being announced. The member cannot lift it; `/announce clear all` keeps it.
+- Preview, `/announce show` and `/announce-admin settings` reflect all three.
+- Migration `0002_sneak_and_silence` adds `guilds.sneaking_allowed` and `member_overrides.sneak` / `silenced`, keeping existing data.
+
+Other post-smoke-test fixes: graceful shutdown leaves voice (Windows `tsx watch` hard-kill and a gateway send race), voice autocomplete within Discord's 25-choice limit (prefix match, current language first), `/announce show` displays effective values, and preview respects channel rules.

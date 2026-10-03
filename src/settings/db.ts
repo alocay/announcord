@@ -12,6 +12,7 @@ export interface GuildsTable {
   voice_id: string;
   enter_template: string | null;
   exit_template: string | null;
+  sneaking_allowed: number;
   created_at: string;
   updated_at: string;
 }
@@ -23,6 +24,10 @@ export interface MemberOverridesTable {
   enter_template: string | null;
   exit_template: string | null;
   pronunciation: string | null;
+  /** 0 or 1. */
+  sneak: number;
+  /** 0 or 1. */
+  silenced: number;
   updated_at: string;
   updated_by: string;
 }

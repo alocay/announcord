@@ -115,6 +115,7 @@ while developing to get them immediately in one server.
 | `/announce enter <text>` | What is said when you join |
 | `/announce exit <text>` | What is said when you leave |
 | `/announce pronounce <text>` | How your name is spoken |
+| `/announce sneak <True\|False>` | Come and go without being announced (if the server allows it) |
 | `/announce clear <field>` | Remove one of your settings, or all of them |
 | `/announce show` | Show your settings and what will be said |
 | `/announce preview` | Show what will be said, and play it if you are in a voice channel |
@@ -126,13 +127,20 @@ while developing to get them immediately in one server.
 |---|---|
 | `/announce-admin style <joins\|exits\|both>` | What to announce |
 | `/announce-admin ignore-empty <on\|off>` | Skip announcements when nobody else is there |
+| `/announce-admin sneaking <True\|False>` | Whether members may use `/announce sneak` (allowed by default) |
 | `/announce-admin voice <voice>` | Default voice for the server |
 | `/announce-admin template <enter\|exit> <text>` | Default message for the server |
 | `/announce-admin channel allow\|deny\|unlist <channel>` | Choose which channels are announced |
 | `/announce-admin user set <member> <field> <value>` | Set a member's personal setting |
 | `/announce-admin user clear <member> <field>` | Remove a member's personal setting |
+| `/announce-admin user silence <member> <True\|False>` | Stop announcing a member; they cannot undo it |
 | `/announce-admin settings` | Show the configuration, this month's usage and any permission problems |
 | `/announce-admin reset` | Restore defaults (asks for confirmation) |
+
+A silenced member is never announced, and nothing they do lifts it, not even
+`/announce clear all`. A member's own sneak only counts while the server allows
+sneaking; turning sneaking off announces everyone again without forgetting who
+chose to sneak. `/announce preview` follows both, as well as the channel rules.
 
 Messages may be up to 150 characters, not counting `%name`. If any channel is
 allowed, only allowed channels are announced; otherwise every channel except the

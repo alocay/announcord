@@ -41,9 +41,25 @@ export function channelPermitted(rules: ReadonlyMap<string, ChannelRule>, channe
   return anyAllow ? rule === 'allow' : rule !== 'deny';
 }
 
+export type MutedReason = 'silenced' | 'sneaking';
+
+/**
+ * Why a member is not announced at all, if they are not. An admin's silence
+ * always applies; a member's own sneak only while the server allows sneaking.
+ */
+export function mutedReason(
+  settings: GuildSettings,
+  override: MemberOverride | null,
+): MutedReason | null {
+  if (override?.silenced) return 'silenced';
+  if (override?.sneak && settings.sneakingAllowed) return 'sneaking';
+  return null;
+}
+
 /** Decides which announcements, in play order, a voice event should produce. */
 export function decideAnnouncements(input: PolicyInput): Announcement[] {
   const { event, settings, override, rules } = input;
+  if (mutedReason(settings, override)) return [];
   const name = resolveName(event.names, override?.pronunciation ?? null);
   const voiceId = override?.voiceId ?? settings.voiceId;
 

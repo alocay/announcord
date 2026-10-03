@@ -63,6 +63,8 @@ function announceRequest(interaction: ChatInputCommandInteraction<'cached'>): An
     case 'exit':
     case 'pronounce':
       return { sub, text: options.getString('text', true) };
+    case 'sneak':
+      return { sub, enabled: options.getBoolean('enabled', true) };
     case 'clear':
       return { sub, field: options.getString('field', true) as FieldChoice | 'all' };
     case 'voices':
@@ -99,24 +101,32 @@ function adminRequest(
       targetId: user.id,
       targetName: options.getMember('member')?.displayName ?? user.username,
     };
-    return sub === 'set'
-      ? {
+    switch (sub) {
+      case 'set':
+        return {
           sub: 'user-set',
           ...target,
           field: options.getString('field', true) as FieldChoice,
           value: options.getString('value', true),
-        }
-      : {
+        };
+      case 'clear':
+        return {
           sub: 'user-clear',
           ...target,
           field: options.getString('field', true) as FieldChoice | 'all',
         };
+      case 'silence':
+        return { sub: 'user-silence', ...target, enabled: options.getBoolean('enabled', true) };
+      default:
+        throw new Error(`Unknown /announce-admin user subcommand: ${sub}`);
+    }
   }
 
   switch (sub) {
     case 'style':
       return { sub, style: options.getString('style', true) as AnnounceStyle };
     case 'ignore-empty':
+    case 'sneaking':
       return { sub, enabled: options.getBoolean('enabled', true) };
     case 'voice':
       return { sub, voice: options.getString('voice', true) };

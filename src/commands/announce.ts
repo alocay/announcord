@@ -1,4 +1,4 @@
-import { channelPermitted, resolveName } from '../announce/policy.js';
+import { channelPermitted, mutedReason, resolveName } from '../announce/policy.js';
 import { DEFAULTS } from '../domain.js';
 import type { Voice } from '../tts/provider.js';
 import {
@@ -16,6 +16,7 @@ import {
 export type AnnounceRequest =
   | { sub: 'voice'; voice: string }
   | { sub: 'enter' | 'exit' | 'pronounce'; text: string }
+  | { sub: 'sneak'; enabled: boolean }
   | { sub: 'clear'; field: FieldChoice | 'all' }
   | { sub: 'show' }
   | { sub: 'preview' }
@@ -23,6 +24,10 @@ export type AnnounceRequest =
 
 // Discord rejects messages over 2000 characters; leave room for the footer.
 const VOICE_LIST_BUDGET = 1800;
+
+const SILENCED_NOTE = 'You are silenced by an admin, so you won’t be announced.';
+const SNEAKING_NOTE =
+  'You are sneaking, so you won’t be announced. Use `/announce sneak enabled:False` to stop.';
 
 /** Runs a `/announce` subcommand. It only ever affects the caller. */
 export async function runAnnounce(
@@ -41,6 +46,22 @@ export async function runAnnounce(
       const result = await setOverride(deps, guildId, userId, req.sub, raw, userId);
       if (!result.ok) return { reply: result.error };
       return { reply: `Your ${FIELDS[req.sub].label} is now: **${result.value}**` };
+    }
+
+    case 'sneak': {
+      if (!req.enabled) {
+        await deps.store.setFlag(guildId, userId, 'sneak', false, userId);
+        return { reply: 'You are no longer sneaking. You will be announced again.' };
+      }
+      const settings = await deps.store.getGuild(guildId);
+      if (!settings.sneakingAllowed) {
+        return { reply: 'Sneaking is not allowed on this server.' };
+      }
+      await deps.store.setFlag(guildId, userId, 'sneak', true, userId);
+      return {
+        reply:
+          'You are sneaking: you won’t be announced when you join or leave. Use `/announce sneak enabled:False` to stop.',
+      };
     }
 
     case 'clear': {
@@ -90,6 +111,14 @@ export async function runAnnounce(
             resolveName(caller.names, null),
             'your display name',
           )}`,
+          `Sneaking: ${
+            !override?.sneak
+              ? 'off'
+              : settings.sneakingAllowed
+                ? 'on'
+                : 'on *(not allowed on this server, so you are announced anyway)*'
+          }`,
+          ...(override?.silenced ? ['', `**${SILENCED_NOTE}**`] : []),
           '',
           `**What will be said** (voice: ${spoken.voiceId})`,
           `Joining: “${spoken.enter}”`,
@@ -99,13 +128,22 @@ export async function runAnnounce(
     }
 
     case 'preview': {
-      const spoken = await spokenFor(deps, guildId, userId, caller.names);
+      const [settings, override, spoken] = await Promise.all([
+        deps.store.getGuild(guildId),
+        deps.store.getOverride(guildId, userId),
+        spokenFor(deps, guildId, userId, caller.names),
+      ]);
       const lines = [
         `Joining: “${spoken.enter}”`,
         `Leaving: “${spoken.exit}”`,
         `Voice: ${spoken.voiceId}`,
         '',
       ];
+      // A preview must never make the bot say what a real join would not.
+      const muted = mutedReason(settings, override);
+      if (muted) {
+        return { reply: [...lines, muted === 'silenced' ? SILENCED_NOTE : SNEAKING_NOTE].join('\n') };
+      }
       if (!deps.tts.isEnabledFor(guildId)) {
         return { reply: [...lines, SPEECH_DISABLED_NOTE].join('\n') };
       }

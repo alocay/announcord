@@ -14,6 +14,8 @@ import { validateTemplate } from './validation.js';
 export type AdminRequest =
   | { sub: 'style'; style: AnnounceStyle }
   | { sub: 'ignore-empty'; enabled: boolean }
+  | { sub: 'sneaking'; enabled: boolean }
+  | { sub: 'user-silence'; targetId: string; targetName: string; enabled: boolean }
   | { sub: 'voice'; voice: string }
   | { sub: 'template'; kind: 'enter' | 'exit'; text: string }
   | { sub: 'channel'; action: 'allow' | 'deny' | 'unlist'; channelId: string; channelName: string }
@@ -48,6 +50,22 @@ export async function runAnnounceAdmin(
         reply: req.enabled
           ? 'Announcements are skipped when nobody else is in the channel.'
           : 'Joins are announced even when nobody else is in the channel.',
+      };
+
+    case 'sneaking':
+      await store.updateGuild(guildId, { sneakingAllowed: req.enabled });
+      return {
+        reply: req.enabled
+          ? 'Members may sneak with `/announce sneak`.'
+          : 'Sneaking is off: every member is announced, even those who chose to sneak.',
+      };
+
+    case 'user-silence':
+      await store.setFlag(guildId, req.targetId, 'silenced', req.enabled, caller.userId);
+      return {
+        reply: req.enabled
+          ? `**${req.targetName}** is silenced and won’t be announced. They cannot undo this.`
+          : `**${req.targetName}** is no longer silenced.`,
       };
 
     case 'voice': {
@@ -121,10 +139,11 @@ export async function runAnnounceAdmin(
     }
 
     case 'settings': {
-      const [settings, rules, chars] = await Promise.all([
+      const [settings, rules, chars, silenced] = await Promise.all([
         store.getGuild(guildId),
         store.getRules(guildId),
         deps.meter.get(guildId),
+        store.getSilenced(guildId),
       ]);
       const named = (rule: 'allow' | 'deny') =>
         [...rules]
@@ -141,6 +160,9 @@ export async function runAnnounceAdmin(
         `Exit message: ${settings.exitTemplate ?? DEFAULTS.exitTemplate}`,
         `Allowed channels: ${named('allow')}`,
         `Denied channels: ${named('deny')}`,
+        `Members may sneak: ${settings.sneakingAllowed ? 'yes' : 'no'}`,
+        // Mentions show names in Discord; the reply is sent with pings disabled.
+        `Silenced members: ${silenced.map((id) => `<@${id}>`).join(', ') || 'none'}`,
         '',
         deps.tts.isEnabledFor(guildId) ? 'Speech: enabled, no limit' : SPEECH_DISABLED_NOTE,
         `Characters synthesized this month: ${chars.toLocaleString('en-US')}`,
