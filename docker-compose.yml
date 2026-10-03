@@ -7,6 +7,12 @@ services:
       DATA_DIR: /data
     volumes:
       - announcord-data:/data
+    # Docker keeps container logs forever by default; cap them.
+    logging:
+      driver: local
+      options:
+        max-size: 10m
+        max-file: "3"
 
 volumes:
   announcord-data:

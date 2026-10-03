@@ -154,8 +154,22 @@ or restrict it further, under *Server Settings → Integrations → Announcord*.
 
 Everything lives under `DATA_DIR`:
 
-- `announcord.sqlite` — settings and monthly usage. Back this file up.
+- `announcord.sqlite` — settings and monthly usage.
 - `cache/` — synthesized clips. Safe to delete; it is rebuilt as needed.
+
+Don't back up by copying `announcord.sqlite` while the bot runs: the database
+uses write-ahead logging, so recent changes sit in a separate `-wal` file and a
+plain copy can miss them. Use the backup command, which is safe at any time and
+writes a timestamped copy to `DATA_DIR/backups/`:
+
+```sh
+npm run backup                                    # with Node
+docker compose exec bot node dist/backup.js       # with Docker
+docker compose cp bot:/data/backups ./backups     # copy them off the server
+```
+
+Pass a file path to choose where the copy goes. Old copies are not deleted
+automatically.
 
 ## Cost
 
@@ -197,14 +211,12 @@ If step 2 plays at the wrong speed or not at all, run the live Polly test
 above: the bot forwards Polly's Opus packets to Discord unchanged and relies on
 them being 20 ms long.
 
-The Docker image has not been built on the development machine (no Docker
-there); the first `docker compose build` is its first test.
-
 ### Layout
 
 ```
 src/
   index.ts            startup and shutdown
+  backup.ts           database backup command
   config.ts           environment validation
   domain.ts           shared types and defaults
   discord/            gateway events, voice connection, command registration
