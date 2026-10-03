@@ -102,6 +102,9 @@ docker compose up -d
 docker compose logs -f bot
 ```
 
+If the connection to Discord stays down for five minutes, the bot exits with an
+error and Docker restarts it, so a stuck process doesn't stay stuck.
+
 Globally registered commands can take up to an hour to appear. Set `DEV_GUILD_ID`
 while developing to get them immediately in one server.
 

@@ -16,9 +16,14 @@ import { PollyProvider } from './tts/pollyProvider.js';
 import { TtsService } from './tts/ttsService.js';
 import { UsageMeter } from './tts/usageMeter.js';
 import { waitUntil } from './waitUntil.js';
+import { gatewayReady, Watchdog } from './watchdog.js';
 
 const MAX_WARNINGS = 10;
 const SHUTDOWN_LEAVE_TIMEOUT_MS = 3000;
+// discord.js reconnects by itself after outages; only a connection that stays
+// down this long is treated as stuck, and the process exits for Docker to restart.
+const GATEWAY_STUCK_MS = 5 * 60 * 1000;
+const WATCHDOG_INTERVAL_MS = 30 * 1000;
 
 /** Voice channels the bot lacks permission to speak in. */
 function joinWarnings(guild: Guild): string[] {
@@ -79,19 +84,48 @@ async function main(): Promise<void> {
   client.on(Events.InteractionCreate, (interaction) => {
     void handleInteraction(interaction, { store, meter, tts, registry, joinWarnings, log });
   });
+  const watchdog = new Watchdog({
+    isHealthy: () => gatewayReady(client.ws),
+    maxUnhealthyMs: GATEWAY_STUCK_MS,
+    onStuck: (unhealthyForMs) => {
+      log.error({ unhealthyForMs }, 'discord connection stuck, restarting');
+      void shutdown('watchdog', 1);
+    },
+  });
+
   client.once(Events.ClientReady, (ready) => {
+    watchdog.start(WATCHDOG_INTERVAL_MS);
     log.info(
       { user: ready.user.tag, guilds: ready.guilds.cache.size, speechEnabledFor: config.unlimitedGuildIds.size },
       'announcord ready',
     );
   });
   client.on(Events.Error, (error) => log.error({ err: error }, 'discord client error'));
+  // Outages that recover on their own still leave a trace in the logs. discord.js
+  // retries about twice a second, so only the start and end are logged.
+  let gatewayDown = false;
+  client.on(Events.ShardReconnecting, (shardId) => {
+    if (gatewayDown) return;
+    gatewayDown = true;
+    log.warn({ shardId }, 'discord connection lost, reconnecting');
+  });
+  const gatewayBack = (shardId: number) => {
+    if (!gatewayDown) return;
+    gatewayDown = false;
+    log.info({ shardId }, 'discord connection restored');
+  };
+  client.on(Events.ShardResume, gatewayBack);
+  client.on(Events.ShardReady, gatewayBack);
+  client.on(Events.ShardDisconnect, (event, shardId) =>
+    log.error({ shardId, code: event.code }, 'discord connection closed for good'),
+  );
 
   let stopping = false;
-  const shutdown = async (signal: string) => {
+  const shutdown = async (reason: string, exitCode = 0) => {
     if (stopping) return;
     stopping = true;
-    log.info({ signal }, 'shutting down');
+    log.info({ reason }, 'shutting down');
+    watchdog.stop();
     registry.shutdownAll();
     // Leaving voice is a queued gateway message. Closing the gateway straight
     // away can drop it, leaving the bot in the channel until Discord times it
@@ -103,7 +137,7 @@ async function main(): Promise<void> {
     if (!leftVoice) log.warn('voice channels not confirmed left before shutdown');
     await client.destroy();
     await db.destroy();
-    process.exit(0);
+    process.exit(exitCode);
   };
   process.on('SIGINT', () => void shutdown('SIGINT'));
   process.on('SIGTERM', () => void shutdown('SIGTERM'));
